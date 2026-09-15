@@ -1,0 +1,54 @@
+# =====================================
+# FRONT-END (Next.js / React / Node)
+# =====================================
+/front-end/node_modules/
+/front-end/.next/
+/front-end/out/
+/front-end/build/
+/front-end/.env
+/front-end/.env.local
+/front-end/.env.development.local
+/front-end/.env.production.local
+
+# =====================================
+# BACK-END (Spring Boot / Java / Maven)
+# =====================================
+/back-end/target/
+/back-end/bin/
+/back-end/*.class
+/back-end/.mvn/wrapper/maven-wrapper.jar
+
+# Configurações sensíveis locais do Spring Boot
+/back-end/src/main/resources/application.properties
+
+# =====================================
+# IDEs E EDITORES (VS Code, IntelliJ, etc)
+# =====================================
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.sts4-cache/
+.factorypath
+.apt_generated
+
+# =====================================
+# SISTEMA OPERACIONAL E LOGS
+# =====================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Logs de execução
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
