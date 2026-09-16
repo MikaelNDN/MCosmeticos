@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # 1. O BANCO DE DADOS POSTGRESQL
+  db:
+    image: postgres:17
+    container_name: mcosmeticos-db
+    environment:
+      POSTGRES_DB: mcosmeticos_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. A SUA API SPRING BOOT
+  api:
+    build: . # Lê o Dockerfile que acabamos de criar
+    container_name: mcosmeticos-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db # A API só sobe depois que o banco estiver pronto
+    environment:
+      # O pulo do gato: Repare que a URL não aponta para "localhost", mas para o container "db"
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mcosmeticos_db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=adminpassword
+
+      # Cole aqui os valores reais (ou deixe para passar via terminal depois)
+      - API_SECURITY_TOKEN_SECRET=
+      - CLOUDINARY_CLOUD_NAME=ijmb6qad
+      - CLOUDINARY_API_KEY=378133895392397
+      - CLOUDINARY_API_SECRET=J2Ox6ohacGUbb6O_mVA1i3Y4OEI
+      - WHATSAPP_LOJA_NUMERO=5583999999999
+
+volumes:
+  postgres_data: # Garante que os dados do banco não sumam se o container reiniciar

@@ -1,0 +1,15 @@
+# BANCO DE DADOS (POSTGRESQL)
+spring.datasource.url=jdbc:postgresql://localhost:5432/mcosmeticos_db
+spring.datasource.username=seu_usuario_postgres
+spring.datasource.password=sua_senha_postgres
+
+# JWT
+api.security.token.secret=sua_chave_secreta_aqui
+
+# CLOUDINARY
+cloudinary.cloud_name=seu_cloud_name
+cloudinary.api_key=sua_api_key
+cloudinary.api_secret=sua_api_secret
+
+# WHATSAPP DA LOJA
+whatsapp.loja.numero=5583999999999
