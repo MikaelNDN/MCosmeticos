@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
-import Image from "next/image"; // <-- Importação da imagem adicionada!
+import Image from "next/image";
+import { toast } from "sonner";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -38,7 +39,9 @@ export default function LoginPage() {
                 const role = decodedToken?.role || decodedToken?.authorities?.[0] || "USER";
                 localStorage.setItem("role", String(role).toUpperCase());
 
-                alert("Login realizado com sucesso!");
+                toast.success("Login realizado com sucesso!", {
+                    description: "Bem-vindo de volta à M. Cosméticos.",
+                });
 
                 if (String(role).toUpperCase().includes("ADMIN")) {
                     router.push("/admin");
@@ -49,13 +52,16 @@ export default function LoginPage() {
         } catch (err: unknown) {
             console.error(err);
             setErro("E-mail ou senha inválidos. Tente novamente.");
+
+            toast.error("Falha na autenticação", {
+                description: "Verifique as suas credenciais e tente novamente.",
+            });
         }
     };
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans grid grid-cols-1 lg:grid-cols-2 selection:bg-white selection:text-black">
 
-            {/* Lado Esquerdo - Imagem (Padrão do Cadastro) */}
             <div className="relative hidden lg:flex flex-col justify-between p-12 bg-[#0D0D0D] border-r border-zinc-800/80 overflow-hidden">
                 <div className="absolute inset-0 z-0 opacity-45">
                     <Image
@@ -89,7 +95,7 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* Lado Direito - Formulário */}
+
             <div className="flex items-center justify-center p-6 sm:p-12 lg:p-16">
                 <div className="w-full max-w-md space-y-6 bg-[#141414] border border-zinc-800 p-8 sm:p-10 rounded-2xl shadow-2xl my-auto">
 

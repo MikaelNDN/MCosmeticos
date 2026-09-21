@@ -3,7 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
-import { useAuthGuard } from "@/hooks/useAuthGuard"; // Importa o hook de proteção
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { toast } from "sonner";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Perfume {
     id: string;
@@ -15,7 +27,7 @@ interface Perfume {
 }
 
 export default function AdminPerfumesPage() {
-    useAuthGuard(true); // Bloqueia e expulsa quem não for ADMIN
+    useAuthGuard(true);
     const router = useRouter();
     const [perfumes, setPerfumes] = useState<Perfume[]>([]);
     const [loading, setLoading] = useState(true);
@@ -65,31 +77,34 @@ export default function AdminPerfumesPage() {
         carregarCatalogo(termoBusca);
     };
 
+    // Função limpa: Só exclui. A pergunta de "Tem certeza?" ficou no HTML.
     const handleDelete = async (id: string) => {
-        // 1. A ARMADILHA: Imprime no console exatamente o que o botão mandou
-        console.log("🔥 TENTANDO DELETAR O PERFUME COM O ID:", id);
-
-        // 2. Trava de segurança: Se o ID for inválido, barra antes de enviar pro Java
         if (!id || id === "undefined" || typeof id !== "string") {
-            alert(`ALERTA DE ERRO: O ID do perfume está inválido ou vazio! Valor recebido: ${id}`);
-            return; // Para a execução aqui, evitando o erro 400 do servidor!
+            toast.error("Erro de Validação", {
+                description: "O ID do perfume está inválido ou vazio.",
+            });
+            return;
         }
 
-        if (window.confirm("Tem certeza que deseja excluir esta fragrância?")) {
-            try {
-                await api.delete(`/api/perfumes/${id}`);
-                alert("Perfume excluído com sucesso!");
-                carregarCatalogo(); // Recarrega a tabela atualizada
-            } catch (error) {
-                console.error("Erro ao excluir:", error);
-                alert("Erro ao excluir perfume. Verifique o console.");
-            }
+        try {
+            await api.delete(`/api/perfumes/${id}`);
+
+            toast.success("Perfume excluído", {
+                description: "A fragrância foi removida do catálogo com sucesso.",
+            });
+
+            carregarCatalogo();
+        } catch (error) {
+            console.error("Erro ao excluir:", error);
+
+            toast.error("Falha na exclusão", {
+                description: "Não foi possível remover o perfume. Verifique sua conexão ou tente novamente.",
+            });
         }
     };
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-white selection:text-black">
-            {/* Header Dark Mode */}
             <header className="border-b border-zinc-800 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <span className="text-xl font-bold tracking-wide text-white">
@@ -98,7 +113,7 @@ export default function AdminPerfumesPage() {
                     <button
                         type="button"
                         onClick={() => router.push("/vitrine")}
-                        className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-medium flex items-center gap-2"
+                        className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-medium flex items-center gap-2 cursor-pointer"
                     >
                         <span>Sair</span>
                         <span className="hidden sm:inline">(Ir para Vitrine)</span>
@@ -113,13 +128,12 @@ export default function AdminPerfumesPage() {
                     <button
                         type="button"
                         onClick={() => router.push("/admin/perfumes/novo")}
-                        className="bg-white text-black text-xs uppercase tracking-widest px-6 py-3 rounded-lg hover:bg-zinc-200 transition-colors font-bold shadow-lg"
+                        className="bg-white text-black text-xs uppercase tracking-widest px-6 py-3 rounded-lg hover:bg-zinc-200 transition-colors font-bold shadow-lg cursor-pointer"
                     >
                         + Nova Fragrância
                     </button>
                 </div>
 
-                {/* Barra de Pesquisa */}
                 <div className="bg-[#141414] border border-zinc-800 p-4 rounded-xl shadow-2xl mb-8">
                     <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 items-center">
                         <input
@@ -129,7 +143,7 @@ export default function AdminPerfumesPage() {
                             onChange={(e) => setTermoBusca(e.target.value)}
                             className="bg-[#0A0A0A] border border-zinc-800 focus:border-zinc-500 rounded-lg px-4 py-3 text-sm focus:outline-none transition-all placeholder:text-zinc-600 text-white flex-1 w-full"
                         />
-                        <button type="submit" className="bg-zinc-800 text-white text-xs uppercase tracking-widest px-8 py-3.5 rounded-lg hover:bg-zinc-700 transition-colors font-bold w-full sm:w-auto">
+                        <button type="submit" className="bg-zinc-800 text-white text-xs uppercase tracking-widest px-8 py-3.5 rounded-lg hover:bg-zinc-700 transition-colors font-bold w-full sm:w-auto cursor-pointer">
                             Buscar
                         </button>
                     </form>
@@ -170,7 +184,7 @@ export default function AdminPerfumesPage() {
                                             {perfume.estoque} un.
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right space-x-5">
+                                    <td className="px-6 py-4 text-right space-x-5 flex justify-end items-center">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -178,17 +192,39 @@ export default function AdminPerfumesPage() {
                                                 router.push(`/admin/perfumes/${perfume.id}`);
                                             }}
                                             disabled={carregandoId === perfume.id}
-                                            className="text-[10px] uppercase tracking-widest text-zinc-300 hover:text-white font-medium disabled:opacity-50 transition-colors"
+                                            className="text-[10px] uppercase tracking-widest text-zinc-300 hover:text-white font-medium disabled:opacity-50 transition-colors cursor-pointer"
                                         >
                                             {carregandoId === perfume.id ? "Abrindo..." : "Editar"}
                                         </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDelete(perfume.id)}
-                                            className="text-[10px] uppercase tracking-widest text-red-500 hover:text-red-400 font-medium transition-colors"
-                                        >
-                                            Excluir
-                                        </button>
+
+                                        <AlertDialog>
+                                            <AlertDialogTrigger
+                                                className="text-[10px] uppercase tracking-widest text-red-500 hover:text-red-400 font-medium transition-colors cursor-pointer"
+                                            >
+                                                Excluir
+                                            </AlertDialogTrigger>
+
+                                            <AlertDialogContent className="bg-[#141414] border-zinc-800 text-white sm:rounded-2xl">
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle className="text-xl">Tem certeza absoluta?</AlertDialogTitle>
+                                                    <AlertDialogDescription className="text-zinc-400">
+                                                        Esta ação não pode ser desfeita. Isso excluirá permanentemente a fragrância <strong className="text-zinc-200">{perfume.nome}</strong> do banco de dados.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter className="mt-4">
+                                                    <AlertDialogCancel className="bg-transparent border-zinc-700 text-white hover:bg-zinc-800 cursor-pointer rounded-lg">
+                                                        Cancelar
+                                                    </AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => handleDelete(perfume.id)}
+                                                        className="bg-red-600/90 text-white hover:bg-red-700 cursor-pointer rounded-lg"
+                                                    >
+                                                        Sim, excluir
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+
                                     </td>
                                 </tr>
                             ))}
