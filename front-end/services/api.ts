@@ -3,7 +3,7 @@ import axios from "axios";
 const api = axios.create({
     baseURL:
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://mcosmeticos-api.onrender.com",
+        "https://mcosmeticos.onrender.com",
 });
 
 // Interceptor para enviar o token JWT
