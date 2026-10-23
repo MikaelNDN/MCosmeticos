@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -27,23 +29,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(org.springframework.security.config.Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Libera requisições preflight (CORS)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Libera listagem e leitura pública
                         .requestMatchers(HttpMethod.GET, "/api/perfumes", "/api/perfumes/**").permitAll()
 
+                        // Endpoints públicos de autenticação e cadastro
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/usuarios/cadastro").permitAll()
-                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/cadastro").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+
+                        // Swagger
                         .requestMatchers("/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**").permitAll()
 
-                        // Libera explicitamente todas as operações de modificação para ADMIN
+                        // Operações restritas a ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/perfumes", "/api/perfumes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/perfumes", "/api/perfumes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/perfumes", "/api/perfumes/**").hasRole("ADMIN")
@@ -68,14 +76,15 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        
-        configuration.setAllowedOrigins(java.util.List.of(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://localhost:8081"
+
+        // Adicionados os domínios da Vercel e padrões dinâmicos
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://m-cosmeticos.vercel.app",
+                "https://*.vercel.app"
         ));
-        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
