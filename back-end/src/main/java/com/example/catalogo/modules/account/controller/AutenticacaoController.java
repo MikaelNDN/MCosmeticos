@@ -24,13 +24,10 @@ public class AutenticacaoController {
 
     @PostMapping("/login")
     public ResponseEntity<String> efetuarLogin(@RequestBody LoginDTO dto) {
-        // Encapsula o e-mail e a senha em um token padrão do Spring Security
         var authenticationToken = new UsernamePasswordAuthenticationToken(dto.email(), dto.senha());
 
-        // O manager vai no banco (via AutenticacaoService), compara o Hash da senha e valida
         var authentication = manager.authenticate(authenticationToken);
 
-        // Se a senha estiver correta, geramos o nosso JWT
         var tokenJWT = tokenService.gerarToken((Usuario) authentication.getPrincipal());
 
         return ResponseEntity.ok(tokenJWT);
