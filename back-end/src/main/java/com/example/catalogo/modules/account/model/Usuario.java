@@ -17,7 +17,7 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = "id") // Otimiza a comparação de objetos no Java usando apenas o ID
+@EqualsAndHashCode(of = "id")
 public class Usuario implements  UserDetails {
 
     @Id

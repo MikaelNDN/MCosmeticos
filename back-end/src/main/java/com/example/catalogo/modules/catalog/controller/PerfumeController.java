@@ -66,7 +66,7 @@ public class PerfumeController {
     public ResponseEntity<Perfume> atualizar(
             @PathVariable UUID id,
             @ModelAttribute PerfumeCadastroDTO dto,
-            // Alterado de "file" para "imagem" para casar com o FormData da edição
+
             @RequestParam(value = "imagem", required = false) MultipartFile file) {
 
         Perfume perfumeAtualizado = service.atualizar(id, dto);
