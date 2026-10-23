@@ -1,10 +1,11 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+    // Força a URL do Render com protocolo completo (https://) caso a variável de ambiente falhe ou esteja malformatada
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "https://mcosmeticos-api.onrender.com",
 });
 
-// Interceptor indispensável para enviar o token JWT em TODA requisição (GET, POST, DELETE, etc.)
+// Interceptor para enviar o token JWT em todas as requisições
 api.interceptors.request.use(
     (config) => {
         if (typeof window !== "undefined") {
