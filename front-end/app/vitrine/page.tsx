@@ -29,27 +29,19 @@ export default function VitrinePage() {
     const [logado, setLogado] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
 
-
     const filtrarUmPorLinha = (dados: unknown): Perfume[] => {
         let arrayBruto: unknown[] = [];
 
-
         if (Array.isArray(dados)) {
             arrayBruto = dados;
-        }
-
-        else if (dados && typeof dados === "object") {
+        } else if (dados && typeof dados === "object") {
             const obj = dados as Record<string, unknown>;
 
             if (Array.isArray(obj.content)) {
                 arrayBruto = obj.content;
-            }
-
-            else if (Array.isArray(obj.data)) {
+            } else if (Array.isArray(obj.data)) {
                 arrayBruto = obj.data;
-            }
-
-            else if (obj.data && typeof obj.data === "object") {
+            } else if (obj.data && typeof obj.data === "object") {
                 const innerObj = obj.data as Record<string, unknown>;
                 if (Array.isArray(innerObj.content)) {
                     arrayBruto = innerObj.content;
@@ -58,7 +50,6 @@ export default function VitrinePage() {
                 }
             }
         }
-
 
         const listaSegura = arrayBruto as Perfume[];
 
@@ -184,14 +175,12 @@ export default function VitrinePage() {
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 selection:bg-white selection:text-black font-sans">
             <header className="border-b border-zinc-800 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-                    {/* Logo menor no celular */}
                     <div className="cursor-pointer group" onClick={() => handleLimparFiltros()}>
-            <span className="text-sm sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
-                M. COSMÉTICOS
-            </span>
+                        <span className="text-sm sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
+                            M. COSMÉTICOS
+                        </span>
                     </div>
 
-                    {/* Botões do Menu com espaçamento adaptável */}
                     <div className="flex items-center gap-2 sm:gap-6">
                         {logado ? (
                             <>
@@ -202,8 +191,8 @@ export default function VitrinePage() {
                                     <span>Favoritos</span>
                                     {favoritosIds?.size > 0 && (
                                         <span className="bg-white text-black text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-bold">
-                                {favoritosIds.size}
-                            </span>
+                                            {favoritosIds.size}
+                                        </span>
                                     )}
                                 </button>
                                 <button
@@ -303,84 +292,90 @@ export default function VitrinePage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-                        {perfumes.map((perfume) => (
-                            <div
-                                key={perfume.id}
-                                onClick={() => router.push(`/perfume/${perfume.id}`)}
-                                className="group cursor-pointer flex flex-col bg-[#141414] border border-zinc-800/80 rounded-xl overflow-hidden hover:border-zinc-600 hover:-translate-y-1 transition-all duration-300"
-                            >
-                                <div className="aspect-[4/5] w-full bg-[#0D0D0D] relative flex items-center justify-center overflow-hidden">
-                                    <button
-                                        onClick={(e) => handleToggleFavorito(e, perfume.id)}
-                                        className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/40 backdrop-blur-md border border-zinc-700 hover:bg-black/80 hover:scale-110 transition-all duration-300"
-                                        aria-label="Favoritar"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            className={`w-3.5 h-3.5 transition-colors duration-300 ${favoritosIds?.has(perfume.id) ? 'fill-white text-white' : 'fill-transparent text-zinc-400'}`}
-                                            stroke="currentColor"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
+                        {perfumes.map((perfume) => {
+                            const eNatura = perfume.marca?.toLowerCase().includes("natura");
+                            const porcentagemDesconto = eNatura ? 30 : 10;
+                            const precoAVista = Number(perfume.preco) * (eNatura ? 0.7 : 0.9);
+
+                            return (
+                                <div
+                                    key={perfume.id}
+                                    onClick={() => router.push(`/perfume/${perfume.id}`)}
+                                    className="group cursor-pointer flex flex-col bg-[#141414] border border-zinc-800/80 rounded-xl overflow-hidden hover:border-zinc-600 hover:-translate-y-1 transition-all duration-300"
+                                >
+                                    <div className="aspect-[4/5] w-full bg-[#0D0D0D] relative flex items-center justify-center overflow-hidden">
+                                        <button
+                                            onClick={(e) => handleToggleFavorito(e, perfume.id)}
+                                            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/40 backdrop-blur-md border border-zinc-700 hover:bg-black/80 hover:scale-110 transition-all duration-300"
+                                            aria-label="Favoritar"
                                         >
-                                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                                        </svg>
-                                    </button>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24"
+                                                className={`w-3.5 h-3.5 transition-colors duration-300 ${favoritosIds?.has(perfume.id) ? 'fill-white text-white' : 'fill-transparent text-zinc-400'}`}
+                                                stroke="currentColor"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                            </svg>
+                                        </button>
 
-                                    {perfume.estoque === 0 && (
-                                        <div className="absolute top-3 left-3 z-20">
-                                            <span className="text-[9px] uppercase tracking-wider font-bold text-black bg-white px-2.5 py-1 rounded-full shadow">
-                                                Esgotado
-                                            </span>
-                                        </div>
-                                    )}
+                                        {perfume.estoque === 0 && (
+                                            <div className="absolute top-3 left-3 z-20">
+                                                <span className="text-[9px] uppercase tracking-wider font-bold text-black bg-white px-2.5 py-1 rounded-full shadow">
+                                                    Esgotado
+                                                </span>
+                                            </div>
+                                        )}
 
-                                    {perfume.imagemUrl || perfume.imagem_url ? (
-                                        <img
-                                            src={perfume.imagemUrl || perfume.imagem_url}
-                                            alt={perfume.nome}
-                                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                                        />
-                                    ) : (
-                                        <span className="text-[10px] tracking-widest uppercase text-zinc-700">Sem Imagem</span>
-                                    )}
-                                </div>
-
-                                <div className="p-3.5 flex flex-col flex-1 justify-between">
-                                    <div>
-                                        <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-semibold">
-                                            {perfume.marca}
-                                        </span>
-                                        <h2 className="text-sm font-medium text-zinc-100 mt-0.5 line-clamp-1 group-hover:text-white transition-colors">
-                                            {perfume.nome}
-                                        </h2>
-                                        {perfume.linha && (
-                                            <p className="text-[11px] text-zinc-500 font-light mt-0.5">
-                                                {perfume.linha}
-                                            </p>
+                                        {perfume.imagemUrl || perfume.imagem_url ? (
+                                            <img
+                                                src={perfume.imagemUrl || perfume.imagem_url}
+                                                alt={perfume.nome}
+                                                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                                            />
+                                        ) : (
+                                            <span className="text-[10px] tracking-widest uppercase text-zinc-700">Sem Imagem</span>
                                         )}
                                     </div>
-                                    <div className="mt-3 pt-3 border-t border-zinc-800 flex flex-col gap-1">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[10px] text-zinc-500">De</span>
-                                            <span className="text-xs text-zinc-500 line-through">
-                                                R$ {Number(perfume.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </span>
-                                        </div>
 
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[10px] font-semibold text-emerald-400">
-                                                À vista (10% OFF)
+                                    <div className="p-3.5 flex flex-col flex-1 justify-between">
+                                        <div>
+                                            <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-semibold">
+                                                {perfume.marca}
                                             </span>
-                                            <span className="text-sm font-bold text-white">
-                                                R$ {(Number(perfume.preco) * 0.9).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </span>
+                                            <h2 className="text-sm font-medium text-zinc-100 mt-0.5 line-clamp-1 group-hover:text-white transition-colors">
+                                                {perfume.nome}
+                                            </h2>
+                                            {perfume.linha && (
+                                                <p className="text-[11px] text-zinc-500 font-light mt-0.5">
+                                                    {perfume.linha}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="mt-3 pt-3 border-t border-zinc-800 flex flex-col gap-1">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] text-zinc-500">De</span>
+                                                <span className="text-xs text-zinc-500 line-through">
+                                                    R$ {Number(perfume.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-semibold text-emerald-400">
+                                                    À vista ({porcentagemDesconto}% OFF)
+                                                </span>
+                                                <span className="text-sm font-bold text-white">
+                                                    R$ {precoAVista.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </main>
