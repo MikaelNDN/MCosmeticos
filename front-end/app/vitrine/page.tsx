@@ -361,11 +361,22 @@ export default function VitrinePage() {
                                             </p>
                                         )}
                                     </div>
-                                    <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                                        <span className="text-[10px] text-zinc-500">Valor</span>
-                                        <span className="text-sm font-bold text-white">
-                                            R$ {Number(perfume.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                        </span>
+                                    <div className="mt-3 pt-3 border-t border-zinc-800 flex flex-col gap-1">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] text-zinc-500">De</span>
+                                            <span className="text-xs text-zinc-500 line-through">
+                                                R$ {Number(perfume.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] font-semibold text-emerald-400">
+                                                À vista (10% OFF)
+                                            </span>
+                                            <span className="text-sm font-bold text-white">
+                                                R$ {(Number(perfume.preco) * 0.9).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -60,8 +60,7 @@ export default function NovoPerfumePage() {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            // OBS: Se for no EDITAR (EditarPerfumePage), use api.put em vez de api.post:
-            // await api.put(`/api/perfumes/${resolvedParams.id}`, data, { ... });
+
 
             router.push("/admin/perfumes");
             router.refresh();
