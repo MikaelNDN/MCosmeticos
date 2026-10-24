@@ -36,6 +36,8 @@ public class SecurityConfig {
                         // Libera requisições preflight (CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        .requestMatchers("/").permitAll()
+
                         // Libera listagem e leitura pública
                         .requestMatchers(HttpMethod.GET, "/api/perfumes", "/api/perfumes/**").permitAll()
 
