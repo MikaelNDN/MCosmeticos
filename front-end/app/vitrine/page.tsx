@@ -183,37 +183,40 @@ export default function VitrinePage() {
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 selection:bg-white selection:text-black font-sans">
             <header className="border-b border-zinc-800 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+                    {/* Logo menor no celular */}
                     <div className="cursor-pointer group" onClick={() => handleLimparFiltros()}>
-                        <span className="text-xl font-bold tracking-wide text-white group-hover:text-zinc-300 transition-colors">
-                            M. COSMÉTICOS
-                        </span>
+            <span className="text-sm sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
+                M. COSMÉTICOS
+            </span>
                     </div>
-                    <div className="flex items-center gap-6">
+
+                    {/* Botões do Menu com espaçamento adaptável */}
+                    <div className="flex items-center gap-2 sm:gap-6">
                         {logado ? (
                             <>
                                 <button
                                     onClick={() => router.push("/favoritos")}
-                                    className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-medium flex items-center gap-2"
+                                    className="text-[10px] sm:text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition-colors font-medium flex items-center gap-1"
                                 >
                                     <span>Favoritos</span>
                                     {favoritosIds?.size > 0 && (
-                                        <span className="bg-white text-black text-[10px] px-2 py-0.5 rounded-full font-bold">
-                                            {favoritosIds.size}
-                                        </span>
+                                        <span className="bg-white text-black text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                                {favoritosIds.size}
+                            </span>
                                     )}
                                 </button>
                                 <button
                                     onClick={() => router.push("/perfil")}
-                                    className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-medium"
+                                    className="text-[10px] sm:text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition-colors font-medium"
                                 >
-                                    Meu Perfil
+                                    Perfil
                                 </button>
                             </>
                         ) : (
                             <button
                                 onClick={() => router.push("/login")}
-                                className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-medium"
+                                className="text-[10px] sm:text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition-colors font-medium"
                             >
                                 Entrar
                             </button>
@@ -222,9 +225,9 @@ export default function VitrinePage() {
                         {isAdmin && (
                             <button
                                 onClick={() => router.push("/admin")}
-                                className="text-xs uppercase tracking-widest text-emerald-500 hover:text-emerald-400 transition-colors font-medium border-l border-zinc-800 pl-6"
+                                className="text-[10px] sm:text-xs uppercase tracking-wider text-emerald-500 hover:text-emerald-400 transition-colors font-medium border-l border-zinc-800 pl-2 sm:pl-6 whitespace-nowrap"
                             >
-                                Área Restrita
+                                Admin
                             </button>
                         )}
                     </div>
