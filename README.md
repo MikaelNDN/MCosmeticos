@@ -1,110 +1,109 @@
-```markdown
+Markdown
 # 💄 M. Cosméticos | Plataforma Full-Stack
 
-Plataforma web moderna e completa para catálogo, vitrine e gerenciamento de fragrâncias e cosméticos. O projeto foi desenvolvido com uma arquitetura robusta separada em Back-end (API REST) e Front-end (Interface Web).
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Java 21](https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+
+Plataforma web moderna e responsiva de alta performance para exibição, catálogo e gestão e-commerce de fragrâncias e cosméticos de luxo. Desenvolvida sob uma arquitetura desacoplada utilizando uma API RESTful em **Spring Boot 3** no back-end e um front-end otimizado em **Next.js (App Router)**.
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## 🔗 Links de Acesso
 
-### Back-end
-* **Java 21**
-* **Spring Boot 3**
-* **Spring Security & JWT** (Autenticação e controle de acesso)
-* **Spring Data JPA / Hibernate** (Persistência de dados)
-* **PostgreSQL** (Banco de dados relacional)
-* **Docker & Docker Compose** (Containerização)
-
-### Front-end
-* **Next.js 14/16 (App Router)**
-* **TypeScript**
-* **Tailwind CSS** (Estilização moderna e responsiva)
-* **Axios** (Comunicação com a API)
+- 🌐 **Vitrine Online:** [m-cosmeticos.vercel.app/vitrine](https://m-cosmeticos.vercel.app/vitrine)
+- 🚀 **Deploy:** Hospedado na [Vercel](https://vercel.com)
 
 ---
 
 ## ✨ Funcionalidades
 
-* **Vitrine Interativa:** Listagem de fragrâncias com filtros por nome, marca e exclusão de duplicatas por linha.
-* **Sistema de Favoritos:** Área dedicada para o usuário salvar e gerenciar suas fragrâncias favoritas com segurança.
-* **Autenticação e Permissões:** Sistema de login seguro com rotas protegidas para usuários comuns e administradores (`ADMIN`).
-* **Painel Administrativo:** Gestão completa do catálogo (Criar, Editar, Listar e Excluir perfumes com validação de estoque).
-* **Interface Dark Mode:** Design elegante com foco na experiência do usuário (UX/UI).
+### 🛒 Experiência do Cliente (Vitrine)
+- **Vitrine Responsiva:** Layout moderno com Dark Mode nativo e grelha adaptável (2 colunas otimizadas para dispositivos móveis).
+- **Precificação Inteligente:** Cálculo automático de preço original riscado e valor final com **10% de desconto à vista**.
+- **Busca & Filtros:** Busca em tempo real por nome e marca de fragrância.
+- **Página de Detalhes do Produto:**
+  - Informações completas de marca, linha, descrição e quantidade em estoque.
+  - Carrossel rolável (*scroll horizontal*) com efeito *snap* exibindo outras fragrâncias em estoque.
+- **Comprar via WhatsApp:** Integração nativa com atendimento direto via WhatsApp por meio de *deep links*, compatível com browsers móbile e desktop.
+- **Sistema de Favoritos:** Gerenciamento individual de itens salvos vinculado ao perfil do usuário logado.
+
+### 🔐 Autenticação & Segurança
+- **Segurança Robusta:** Autenticação via **JWT (JSON Web Token)** com controle de acesso baseado em cargos (*Role-Based Access Control* - `USER` e `ADMIN`).
+- **Rotas Protegidas:** Middlewares e *guards* que restringem o acesso às páginas administrativas e área do usuário.
+
+### ⚙️ Painel Administrativo (`ADMIN`)
+- **Gestão de Catálogo (CRUD):** Cadastro, edição e remoção de fragrâncias com diálogos de confirmação acessíveis.
+- **Controle de Estoque:** Monitoramento de unidades disponíveis e badges visuais automáticos de status ("Esgotado").
+- **Paginação e Ordenação:** Suporte a listas extensas com ordenação pelos produtos mais recentes.
 
 ---
 
-## 📂 Estrutura do Projeto
+## 🛠️ Tecnologias Utilizadas
+
+### Front-end
+- **Framework:** Next.js (App Router / React)
+- **Linguagem:** TypeScript
+- **Estilização:** Tailwind CSS + Radix UI / Shadcn UI (AlertDialogs)
+- **Comunicação API:** Axios
+- **Deploy:** Vercel
+
+### Back-end
+- **Linguagem:** Java 21
+- **Framework:** Spring Boot 3
+- **Segurança:** Spring Security + JWT
+- **Persistência:** Spring Data JPA / Hibernate
+- **Banco de Dados:** PostgreSQL
+- **Containerização:** Docker & Docker Compose
+
+---
+
+## 📂 Estrutura do Repositório
 
 ```text
 Projeto-Mperfumes/
-├── back-end/       # API REST desenvolvida em Spring Boot
-├── front-end/      # Interface web desenvolvida em Next.js
+├── back-end/             # API REST desenvolvida em Spring Boot 3 (Java 21)
+│   ├── src/              # Controladores, Serviços, Entidades e Repositórios
+│   ├── Dockerfile        # Configuração de build do contêiner
+│   └── pom.xml           # Dependências do Maven
+│
+├── front-end/            # Aplicação Web desenvolvida em Next.js (App Router)
+│   ├── app/              # Páginas (/vitrine, /perfume/[id], /admin, etc.)
+│   ├── components/       # Componentes reusáveis e UI
+│   ├── services/         # Configuração do Axios e chamadas à API
+│   └── public/           # Banners e assets estáticos
+│
 └── README.md
+🚀 Como Executar o Projeto Localmente
+Pré-requisitos
+Node.js (v18+)
 
-```
+Java JDK 21
 
----
+Docker & Docker Compose (Opcional, para banco de dados local)
 
-## ⚙️ Como Executar o Projeto Localmente
-
-### Pré-requisitos
-
-* **Java 21** instalado
-* **Node.js** (versão 18+) instalado
-* **Docker** e **Docker Compose** (opcional, para subir o banco PostgreSQL)
-
----
-
-### 1. Configurando e Executando o Back-end
-
-1. Navegue até a pasta do back-end:
-```bash
+1. Clonar o Repositório
+Bash
+git clone [https://github.com/seu-usuario/Projeto-Mperfumes.git](https://github.com/seu-usuario/Projeto-Mperfumes.git)
+cd Projeto-Mperfumes
+2. Executar o Back-end
+Bash
 cd back-end
-
-```
-
-
-2. Configure as variáveis de conexão com o banco de dados no arquivo `src/main/resources/application.properties` (ou `.yml`).
-3. Execute a aplicação Spring Boot (via sua IDE favorita, como IntelliJ IDEA/Eclipse, ou pelo terminal usando o Maven):
-```bash
 ./mvnw spring-boot:run
+A API estará disponível em http://localhost:8080
 
-```
-
-
-*O servidor rodará por padrão na porta `8080`.*
-
----
-
-### 2. Configurando e Executando o Front-end
-
-1. Abra um novo terminal e navegue até a pasta do front-end:
-```bash
-cd front-end
-
-```
-
-
-2. Instale as dependências do projeto:
-```bash
+3. Executar o Front-end
+Bash
+cd ../front-end
 npm install
-
-```
-
-
-3. Inicie o servidor de desenvolvimento do Next.js:
-```bash
 npm run dev
+A interface web estará disponível em http://localhost:3000
 
-```
+📄 Licença
+Este projeto foi desenvolvido para fins acadêmicos e comerciais por M. Cosméticos. Todos os direitos reservados.
 
 
-*A aplicação estará acessível em `http://localhost:3000`.*
-
----
-
-## 👨‍💻 Autor
-
-Desenvolvido por **Maikel Noberto**.
-
-```
+<ElicitationsGroup>
+</ElicitationsGroup>
