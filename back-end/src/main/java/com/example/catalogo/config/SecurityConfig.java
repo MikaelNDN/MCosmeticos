@@ -36,9 +36,10 @@ public class SecurityConfig {
                         // Libera requisições preflight (CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/").permitAll()
+                        // Libera a rota raiz e a rota interna de tratamento de erros
+                        .requestMatchers("/", "/error").permitAll()
 
-                        // Libera listagem e leitura pública
+                        // Libera listagem e leitura pública de perfumes
                         .requestMatchers(HttpMethod.GET, "/api/perfumes", "/api/perfumes/**").permitAll()
 
                         // Endpoints públicos de autenticação e cadastro
@@ -46,12 +47,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/cadastro").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 
-                        // Swagger
-                        .requestMatchers("/swagger-ui/**",
-                                "/swagger-ui.html",
+                        // Swagger e OpenAPI Docs
+                        .requestMatchers(
+                                "/v3/api-docs",
                                 "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/swagger-resources/**",
-                                "/webjars/**").permitAll()
+                                "/webjars/**"
+                        ).permitAll()
 
                         // Operações restritas a ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/perfumes", "/api/perfumes/**").hasRole("ADMIN")
@@ -79,7 +83,6 @@ public class SecurityConfig {
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
 
-        // Adicionados os domínios da Vercel e padrões dinâmicos
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "https://m-cosmeticos.vercel.app",
