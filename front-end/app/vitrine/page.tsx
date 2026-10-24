@@ -29,59 +29,12 @@ export default function VitrinePage() {
     const [logado, setLogado] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
 
-
-    const filtrarUmPorLinha = (dados: unknown): Perfume[] => {
-        let arrayBruto: unknown[] = [];
-
-
-        if (Array.isArray(dados)) {
-            arrayBruto = dados;
-        }
-
-        else if (dados && typeof dados === "object") {
-            const obj = dados as Record<string, unknown>;
-
-            if (Array.isArray(obj.content)) {
-                arrayBruto = obj.content;
-            }
-
-            else if (Array.isArray(obj.data)) {
-                arrayBruto = obj.data;
-            }
-
-            else if (obj.data && typeof obj.data === "object") {
-                const innerObj = obj.data as Record<string, unknown>;
-                if (Array.isArray(innerObj.content)) {
-                    arrayBruto = innerObj.content;
-                } else if (Array.isArray(innerObj.data)) {
-                    arrayBruto = innerObj.data;
-                }
-            }
-        }
-
-
-        const listaSegura = arrayBruto as Perfume[];
-
-        const linhasVistas = new Set();
-        return listaSegura.filter((perfume) => {
-            if (!perfume || !perfume.linha || perfume.linha.trim() === "") {
-                return true;
-            }
-            const linhaFormatada = perfume.linha.trim().toLowerCase();
-            if (linhasVistas.has(linhaFormatada)) {
-                return false;
-            } else {
-                linhasVistas.add(linhaFormatada);
-                return true;
-            }
-        });
-    };
-
     const carregarCatalogo = async (nome = "", marca = "") => {
         setLoading(true);
         try {
             let url = "/api/perfumes";
             const params = new URLSearchParams();
+            params.append("size", "1000");
             if (nome) params.append("nome", nome);
             if (marca) params.append("marca", marca);
 
@@ -90,7 +43,8 @@ export default function VitrinePage() {
             }
 
             const response = await api.get(url);
-            setPerfumes(filtrarUmPorLinha(response.data));
+            const dadosBrutos = response.data?.content ? response.data.content : response.data;
+            setPerfumes(Array.isArray(dadosBrutos) ? dadosBrutos : []);
         } catch (error) {
             console.error("Erro ao carregar vitrine:", error);
             setPerfumes([]);
@@ -110,9 +64,10 @@ export default function VitrinePage() {
 
         async function fetchInitialData() {
             try {
-                const response = await api.get("/api/perfumes");
+                const response = await api.get("/api/perfumes?size=1000");
                 if (isMounted) {
-                    setPerfumes(filtrarUmPorLinha(response.data));
+                    const dadosBrutos = response.data?.content ? response.data.content : response.data;
+                    setPerfumes(Array.isArray(dadosBrutos) ? dadosBrutos : []);
                 }
             } catch (error) {
                 console.error("Erro ao carregar vitrine:", error);
@@ -184,14 +139,12 @@ export default function VitrinePage() {
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 selection:bg-white selection:text-black font-sans">
             <header className="border-b border-zinc-800 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-                    {/* Logo menor no celular */}
                     <div className="cursor-pointer group" onClick={() => handleLimparFiltros()}>
-            <span className="text-sm sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
-                M. COSMÉTICOS
-            </span>
+                        <span className="text-sm sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
+                            M. COSMÉTICOS
+                        </span>
                     </div>
 
-                    {/* Botões do Menu com espaçamento adaptável */}
                     <div className="flex items-center gap-2 sm:gap-6">
                         {logado ? (
                             <>
@@ -202,8 +155,8 @@ export default function VitrinePage() {
                                     <span>Favoritos</span>
                                     {favoritosIds?.size > 0 && (
                                         <span className="bg-white text-black text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-bold">
-                                {favoritosIds.size}
-                            </span>
+                                            {favoritosIds.size}
+                                        </span>
                                     )}
                                 </button>
                                 <button
@@ -403,7 +356,7 @@ export default function VitrinePage() {
                     </div>
                     <div className="space-y-4">
                         <h4 className="text-xs uppercase tracking-widest font-semibold text-white">Atendimento</h4>
-                        <p className="text-sm font-light text-zinc-500">Suporte exclusivo via e-mail e canais oficiais.</p>
+                        <p className="text-sm font-light leading-relaxed text-zinc-500">Suporte exclusivo via e-mail e canais oficiais.</p>
                         <p className="text-sm text-white font-medium">contato@mcosmeticos.com.br</p>
                     </div>
                     <div className="space-y-4">
