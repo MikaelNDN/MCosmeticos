@@ -99,7 +99,8 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
             const urlWhatsApp = response.data.whatsappUrl;
 
             if (urlWhatsApp) {
-                window.open(urlWhatsApp, "_blank");
+                // Utiliza redirecionamento direto, abrindo o aplicativo do WhatsApp no celular sem ser bloqueado
+                window.location.href = urlWhatsApp;
             } else {
                 throw new Error("URL do WhatsApp não retornada");
             }
