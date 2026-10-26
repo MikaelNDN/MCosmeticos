@@ -42,7 +42,7 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                     setPerfume(perfumeAtual);
 
                     try {
-                        const allResponse = await api.get("/api/perfumes");
+                        const allResponse = await api.get("/api/perfumes?size=1000");
                         const listaGeral = allResponse.data.content ? allResponse.data.content : allResponse.data;
 
                         if (isMounted && Array.isArray(listaGeral)) {
@@ -99,7 +99,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
             const urlWhatsApp = response.data.whatsappUrl;
 
             if (urlWhatsApp) {
-                // Utiliza redirecionamento direto, abrindo o aplicativo do WhatsApp no celular sem ser bloqueado
                 window.location.href = urlWhatsApp;
             } else {
                 throw new Error("URL do WhatsApp não retornada");
@@ -181,11 +180,11 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
             </header>
 
             <main className="max-w-5xl mx-auto px-6 py-8">
-                {/* Cartão principal super compacto */}
+                {/* Cartão principal compacto */}
                 <div className="bg-[#141414] border border-zinc-800 p-5 md:p-6 rounded-2xl shadow-xl">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
 
-                        {/* Imagem compacta (coluna menor) */}
+                        {/* Imagem do produto */}
                         <div className="md:col-span-5 aspect-[4/5] w-full bg-[#0D0D0D] relative overflow-hidden flex items-center justify-center rounded-xl border border-zinc-800 max-w-[260px] mx-auto md:max-w-none">
                             <button
                                 onClick={(e) => handleToggleFavorito(e, perfume.id)}
@@ -224,15 +223,30 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                             )}
                         </div>
 
-                        {/* Detalhes e Ações (coluna maior) */}
+                        {/* Detalhes do Produto */}
                         <div className="md:col-span-7 flex flex-col justify-between space-y-3">
                             <div>
                                 <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-semibold">{perfume.marca}</span>
                                 <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight mt-0.5">{perfume.nome}</h1>
                                 {perfume.linha && <p className="text-xs text-zinc-400 font-light">{perfume.linha}</p>}
 
-                                <div className="mt-2 text-lg font-bold text-white">
-                                    R$ {Number(perfume.preco || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                {/* Bloco de Preço com 10% OFF */}
+                                <div className="mt-3 border-t border-zinc-800/80 pt-3 flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                                        <span>De:</span>
+                                        <span className="line-through whitespace-nowrap">
+                                            R$ {Number(perfume.preco || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+                                        <span className="text-2xl font-bold text-white whitespace-nowrap">
+                                            R$ {(Number(perfume.preco || 0) * 0.9).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
+                                        <span className="text-xs text-emerald-400 font-semibold uppercase tracking-wider">
+                                            à vista (10% OFF)
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div className="mt-3 border-t border-zinc-800 pt-3">
@@ -263,7 +277,7 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                     </div>
                 </div>
 
-                {/* Seção de Relacionados (aparece logo abaixo, facilitando a visualização imediata) */}
+                {/* Seção de Relacionados */}
                 {mesmaLinha.length > 0 && (
                     <div className="mt-8">
                         <div className="border-t border-zinc-800 pt-6 mb-4 flex items-baseline justify-between">
@@ -315,10 +329,12 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                             <span className="text-[8px] uppercase tracking-widest text-zinc-500 font-semibold block truncate">{item.marca}</span>
                                             <h3 className="text-xs font-medium text-zinc-100 line-clamp-1 group-hover:text-white">{item.nome}</h3>
                                         </div>
-                                        <div className="mt-1.5 pt-1.5 border-t border-zinc-800/80 flex justify-between items-center">
-                                            <span className="text-[9px] text-zinc-500">Valor</span>
+                                        <div className="mt-2 pt-2 border-t border-zinc-800/80 flex flex-col gap-0.5">
+                                            <span className="text-[9px] text-zinc-500 line-through">
+                                                R$ {Number(item.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
                                             <span className="text-xs font-bold text-white">
-                                                R$ {Number(item.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                R$ {(Number(item.preco) * 0.9).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </div>
