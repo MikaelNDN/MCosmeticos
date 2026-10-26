@@ -13,6 +13,7 @@ export default function LoginPage() {
         senha: ""
     });
     const [erro, setErro] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const parseJwt = (token: string) => {
         try {
@@ -29,8 +30,14 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setErro("");
+        setLoading(true);
+
         try {
-            const response = await api.post("/api/auth/login", form);
+            const response = await api.post("/api/auth/login", {
+                email: form.email.trim().toLowerCase(),
+                senha: form.senha
+            });
             const token = response.data;
 
             if (token) {
@@ -56,12 +63,15 @@ export default function LoginPage() {
             toast.error("Falha na autenticação", {
                 description: "Verifique as suas credenciais e tente novamente.",
             });
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans grid grid-cols-1 lg:grid-cols-2 selection:bg-white selection:text-black">
 
+            {/* Painel Lateral (Visível apenas em telas grandes) */}
             <div className="relative hidden lg:flex flex-col justify-between p-12 bg-[#0D0D0D] border-r border-zinc-800/80 overflow-hidden">
                 <div className="absolute inset-0 z-0 opacity-45">
                     <Image
@@ -95,7 +105,7 @@ export default function LoginPage() {
                 </div>
             </div>
 
-
+            {/* Formulário de Login */}
             <div className="flex items-center justify-center p-6 sm:p-12 lg:p-16">
                 <div className="w-full max-w-md space-y-6 bg-[#141414] border border-zinc-800 p-8 sm:p-10 rounded-2xl shadow-2xl my-auto">
 
@@ -118,6 +128,9 @@ export default function LoginPage() {
                                 type="email"
                                 placeholder="exemplo@email.com"
                                 required
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
                                 value={form.email}
                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                                 className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-500 transition-all text-white placeholder:text-zinc-600"
@@ -134,11 +147,13 @@ export default function LoginPage() {
                                 className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-500 transition-all text-white placeholder:text-zinc-600"
                             />
                         </div>
+
                         <button
                             type="submit"
-                            className="w-full bg-white text-black py-3.5 text-xs uppercase tracking-widest font-bold rounded-lg hover:bg-zinc-200 transition-colors shadow-lg mt-2 cursor-pointer"
+                            disabled={loading}
+                            className="w-full bg-white text-black py-3.5 text-xs uppercase tracking-widest font-bold rounded-lg hover:bg-zinc-200 active:bg-zinc-300 transition-all shadow-lg mt-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative z-20 active:scale-[0.99]"
                         >
-                            Entrar
+                            {loading ? "Entrando..." : "Entrar"}
                         </button>
                     </form>
 
