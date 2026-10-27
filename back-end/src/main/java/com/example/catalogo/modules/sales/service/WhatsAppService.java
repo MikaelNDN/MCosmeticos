@@ -32,13 +32,15 @@ public class WhatsAppService {
         var perfume = perfumeRepository.findById(perfumeId)
                 .orElseThrow(() -> new RuntimeException("Perfume não encontrado"));
 
-        // Ajustado para receber: 1: Nome, 2: Nome do Perfume, 3: Marca, 4: Preço
+        // Aplica os 10% de desconto à vista (multiplica por 0.90)
+        double precoComDesconto = (perfume.getPreco() != null ? perfume.getPreco().doubleValue() : 0.0) * 0.90;
+
         String mensagem = String.format(
-                "Olá! Me chamo %s. Tenho interesse em comprar o perfume %s (%s). O valor de R$ %.2f ainda está disponível?",
+                "Olá! Me chamo %s. Tenho interesse em comprar o perfume %s (%s). O valor de R$ %.2f à vista ainda está disponível?",
                 usuario.getNome(),
                 perfume.getNome(),
                 perfume.getMarca(),
-                perfume.getPreco()
+                precoComDesconto
         );
 
         String textoCodificado = URLEncoder.encode(mensagem, StandardCharsets.UTF_8);
