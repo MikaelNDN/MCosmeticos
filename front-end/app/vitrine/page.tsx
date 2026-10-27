@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import api from "@/services/api";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 /* ------------------------------------------------------------------ */
 /* Tipos                                                               */
@@ -286,22 +287,24 @@ export default function VitrinePage() {
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 selection:bg-white selection:text-black font-sans">
             {/* Header */}
             <header className="border-b border-zinc-700 bg-[#121212]/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-20 flex items-center justify-between">
-                    <button type="button" onClick={handleLimparFiltros} className="group cursor-pointer">
-                        <span className="text-xs sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
-                            M. COSMÉTICOS
-                        </span>
+                <div className="max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-20 flex items-center justify-between gap-2">
+                    <button type="button" onClick={handleLimparFiltros} className="group cursor-pointer shrink-0">
+            <span className="text-xs sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
+                M. COSMÉTICOS
+            </span>
                     </button>
 
-                    <nav className="flex items-center gap-1 sm:gap-3">
+                    <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-1">
+                        <ThemeToggle />
+
                         {logado ? (
                             <>
                                 <Link href="/favoritos" className={`${navLinkClass} flex items-center gap-1`}>
                                     <span>Favoritos</span>
                                     {favoritosIds.size > 0 && (
-                                        <span className="bg-white text-black text-[9px] sm:text-xs px-1.5 py-0.5 rounded-full font-bold">
-                                            {favoritosIds.size}
-                                        </span>
+                                        <span className="bg-white text-black text-[9px] sm:text-xs px-1.5 py-0.2 rounded-full font-bold">
+                                {favoritosIds.size}
+                            </span>
                                     )}
                                 </Link>
                                 <Link href="/perfil" className={navLinkClass}>
@@ -309,7 +312,7 @@ export default function VitrinePage() {
                                 </Link>
                             </>
                         ) : (
-                            <Link href="/login" className={`${navLinkClass} px-3`}>
+                            <Link href="/login" className={`${navLinkClass} px-2 sm:px-3`}>
                                 Entrar
                             </Link>
                         )}
@@ -317,7 +320,7 @@ export default function VitrinePage() {
                         {isAdmin && (
                             <Link
                                 href="/admin"
-                                className="text-[11px] sm:text-sm uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors font-bold border-l border-zinc-700 pl-2.5 sm:pl-4 py-1.5 whitespace-nowrap"
+                                className="text-[10px] sm:text-sm uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors font-bold border-l border-zinc-700 pl-1.5 sm:pl-3 py-1 whitespace-nowrap"
                             >
                                 Admin
                             </Link>

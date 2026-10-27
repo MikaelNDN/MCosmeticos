@@ -119,14 +119,126 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+  }
+  button, [role="button"] {
+    cursor: pointer;
+  }
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+  }
+
+  /* ==========================================================================
+     TEMA CLARO (Aplicado quando a classe .dark NÃO está presente no <html>)
+     ========================================================================== */
+  html:not(.dark) {
+    &, body, main, footer {
+      background-color: #f4f4f5 !important;
+      color: #0f172a !important;
+    }
+
+    /* Mudar fundo do Header, Footer, Cards e Caixas de Busca */
+    header,
+    footer,
+    [class*="bg-[#0A0A0A]"],
+    [class*="bg-[#121212]"],
+    [class*="bg-[#141414]"],
+    [class*="bg-[#1C1C1E]"],
+    [class*="bg-[#0D0D0D]"],
+    [class*="bg-[#101010]"] {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    /* Ajuste de opacidade dos textos secundários (elimina o efeito "fantasminha/apagado") */
+    .text-zinc-300,
+    .text-zinc-400,
+    .text-zinc-500,
+    footer p,
+    footer span,
+    footer a {
+      color: #334155 !important; /* Grafite escuro e de alto contraste */
+    }
+
+    /* Textos principais e títulos */
+    .text-white,
+    .text-zinc-100,
+    .text-zinc-200,
+    footer h4,
+    footer span.text-white {
+      color: #0f172a !important;
+    }
+
+    /* Bordas do Rodapé e divisores */
+    footer,
+    footer [class*="border-zinc-800"] {
+      border-color: #cbd5e1 !important;
+    }
+
+    /* Botões brancos padrão passam para o estilo escuro elegante no tema claro */
+    button.bg-white,
+    a.bg-white {
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+    }
+
+    /* Inputs e Caixas de texto */
+    input, textarea {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+
+    input::placeholder {
+      color: #64748b !important;
+    }
+  }
+
+  /* ==========================================================================
+     PROTEÇÃO DE SOBREPOSIÇÕES E BANNERS (Preserva fotos e overlays escuros)
+     ========================================================================== */
+  html:not(.dark) {
+    /* Mantenha o texto branco sobre o Hero Banner com imagem de fundo */
+    section.relative .text-white,
+    section.relative h1,
+    section.relative p {
+      color: #ffffff !important;
+    }
+
+    section.relative .text-zinc-300 {
+      color: #e2e8f0 !important;
+    }
+
+    /* Manter as pílulas/tags pretas visíveis sobre as fotos do carrossel */
+    .bg-black\/70,
+    .bg-black\/80,
+    .bg-black\/40 {
+      background-color: rgba(0, 0, 0, 0.75) !important;
+      color: #ffffff !important;
+    }
+
+    .bg-black\/70 *,
+    .bg-black\/80 *,
+    .bg-black\/40 * {
+      color: #ffffff !important;
+    }
+  }
+
+  /* ==========================================================================
+     TEMA ESCURO (Aplicado quando a classe .dark ESTÁ presente)
+     ========================================================================== */
+  html.dark {
+    &, body {
+      background-color: #0a0a0a !important;
+      color: #f4f4f5 !important;
+    }
   }
 }
 
@@ -138,21 +250,5 @@
   .text-sm {
     font-size: 1rem !important;
     line-height: 1.5rem !important;
-  }
-}
-
-@layer base {
-  button, [role="button"] {
-    cursor: pointer;
-  }
-}
-
-@layer base {
-  html, body {
-    background-color: #121212 !important; /* Mantém o fundo escuro mesmo no efeito elástico de rolar */
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
-    position: relative;
   }
 }
