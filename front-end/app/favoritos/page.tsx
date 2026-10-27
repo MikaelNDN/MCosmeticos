@@ -16,6 +16,17 @@ interface Perfume {
     imagemUrl?: string;
 }
 
+const DESCONTO_AVISTA = 0.1;
+const PERCENTUAL_DESCONTO = Math.round(DESCONTO_AVISTA * 100);
+
+const formatarPreco = (valor: number | string) =>
+    Number(valor).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+
+const precoAVista = (preco: number | string) => Number(preco) * (1 - DESCONTO_AVISTA);
+
 export default function FavoritosPage() {
     useAuthGuard();
     const router = useRouter();
@@ -35,7 +46,6 @@ export default function FavoritosPage() {
         async function carregarFavoritos() {
             try {
                 const response = await api.get("/api/favoritos");
-                console.log("DADOS BRUTOS RECEBIDOS DOS FAVORITOS:", response.data);
 
                 if (isMounted) {
                     const dadosBrutos = Array.isArray(response.data) ? response.data : Object.values(response.data);
@@ -43,10 +53,8 @@ export default function FavoritosPage() {
                     const perfumesFavoritos = dadosBrutos
                         .map((item: unknown) => {
                             const obj = item as Record<string, unknown>;
-                            // Pega os dados do perfume considerando variações de estrutura
                             const p = (obj?.perfume || obj) as Record<string, unknown>;
 
-                            // Normaliza cada campo com segurança para evitar undefined, null ou NaN
                             return {
                                 id: String(p?.id || ''),
                                 nome: String(p?.nome || ''),
@@ -58,7 +66,6 @@ export default function FavoritosPage() {
                                 imagemUrl: String(p?.imagemUrl || p?.imagem_url || ''),
                             } as Perfume;
                         })
-                        // Remove qualquer item que venha sem ID ou com preço inválido/NaN
                         .filter((perfume: Perfume) => perfume.id && !isNaN(perfume.preco) && perfume.preco > 0);
 
                     setFavoritos(perfumesFavoritos);
@@ -109,7 +116,7 @@ export default function FavoritosPage() {
                     </span>
                     <button
                         onClick={() => router.push("/vitrine")}
-                        className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-medium flex items-center gap-2"
+                        className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-medium flex items-center gap-2 cursor-pointer"
                     >
                         <span>&larr; Voltar à Vitrine</span>
                     </button>
@@ -127,7 +134,7 @@ export default function FavoritosPage() {
                         <p className="text-sm text-zinc-500 font-light mb-6">Você ainda não possui fragrâncias salvas nos favoritos.</p>
                         <button
                             onClick={() => router.push("/vitrine")}
-                            className="bg-white text-black text-xs uppercase tracking-widest px-8 py-3.5 rounded-lg hover:bg-zinc-200 transition-colors font-bold shadow-lg"
+                            className="bg-white text-black text-xs uppercase tracking-widest px-8 py-3.5 rounded-lg hover:bg-zinc-200 transition-colors font-bold shadow-lg cursor-pointer"
                         >
                             Explorar Vitrine
                         </button>
@@ -143,7 +150,7 @@ export default function FavoritosPage() {
                                 <div className="aspect-[3/4] w-full bg-[#0D0D0D] relative overflow-hidden flex items-center justify-center">
                                     <button
                                         onClick={(e) => handleRemoverFavorito(e, perfume.id)}
-                                        className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md border border-zinc-700 hover:bg-black/80 hover:scale-110 text-red-400 transition-all duration-300"
+                                        className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md border border-zinc-700 hover:bg-black/80 hover:scale-110 text-red-400 transition-all duration-300 cursor-pointer"
                                         title="Remover dos favoritos"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -168,11 +175,24 @@ export default function FavoritosPage() {
                                         <h2 className="text-lg font-medium text-zinc-100 mt-1 line-clamp-1 group-hover:text-white transition-colors">{perfume.nome}</h2>
                                         {perfume.linha && <p className="text-xs text-zinc-500 font-light mt-1">{perfume.linha}</p>}
                                     </div>
-                                    <div className="mt-5 pt-4 border-t border-zinc-800 flex justify-between items-center">
-                                        <span className="text-[10px] uppercase tracking-widest text-zinc-500">Valor</span>
-                                        <span className="text-lg font-bold text-white">
-                                            R$ {Number(perfume.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                        </span>
+
+                                    {/* Bloco do Preço com Desconto À vista */}
+                                    <div className="mt-5 pt-4 border-t border-zinc-800 flex flex-col gap-1">
+                                        <div className="flex justify-between items-center text-zinc-500 text-[11px]">
+                                            <span>De:</span>
+                                            <span className="line-through whitespace-nowrap">
+                                                R$ {formatarPreco(perfume.preco)}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-col gap-0.5 mt-0.5">
+                                            <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
+                                                À vista ({PERCENTUAL_DESCONTO}% OFF)
+                                            </span>
+                                            <span className="text-lg font-bold text-white whitespace-nowrap">
+                                                R$ {formatarPreco(precoAVista(perfume.preco))}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
