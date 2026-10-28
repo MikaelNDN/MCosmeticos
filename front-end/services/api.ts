@@ -6,8 +6,6 @@ const api = axios.create({
         "https://mcosmeticos.onrender.com",
 });
 
-// Interceptor para enviar o token JWT
-// automaticamente em todas as requisições.
 api.interceptors.request.use(
     (config) => {
         if (typeof window !== "undefined") {
