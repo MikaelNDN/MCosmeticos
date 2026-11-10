@@ -33,12 +33,22 @@ export default function NovoPerfumePage() {
     // Preview da imagem selecionada (com limpeza da URL temporária)
     useEffect(() => {
         if (!imagemArquivo) {
-            setPreviewUrl("");
-            return;
+            const timeoutId = window.setTimeout(() => {
+                setPreviewUrl("");
+            }, 0);
+
+            return () => window.clearTimeout(timeoutId);
         }
+
         const url = URL.createObjectURL(imagemArquivo);
-        setPreviewUrl(url);
-        return () => URL.revokeObjectURL(url);
+        const timeoutId = window.setTimeout(() => {
+            setPreviewUrl(url);
+        }, 0);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+            URL.revokeObjectURL(url);
+        };
     }, [imagemArquivo]);
 
     // Volta para a página anterior (a listagem); sem histórico, usa a rota de reserva

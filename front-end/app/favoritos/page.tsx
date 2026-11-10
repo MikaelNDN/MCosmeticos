@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import api from "@/services/api";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 
@@ -159,10 +160,13 @@ export default function FavoritosPage() {
                                     </button>
 
                                     {perfume.imagemUrl ? (
-                                        <img
+                                        <Image
                                             src={perfume.imagemUrl}
                                             alt={perfume.nome}
-                                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                                            fill
+                                            unoptimized
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                            className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                                         />
                                     ) : (
                                         <span className="text-xs tracking-widest uppercase text-zinc-700">Sem Imagem</span>

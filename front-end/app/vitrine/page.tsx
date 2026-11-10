@@ -151,29 +151,31 @@ export default function VitrinePage() {
     useEffect(() => {
         let ativo = true;
 
-        const token = localStorage.getItem("token");
-        const role = localStorage.getItem("role");
+        const timeoutId = window.setTimeout(() => {
+            const token = localStorage.getItem("token");
+            const role = localStorage.getItem("role");
 
-        setLogado(!!token);
-        setIsAdmin(role?.toUpperCase() === "ADMIN");
+            setLogado(!!token);
+            setIsAdmin(role?.toUpperCase() === "ADMIN");
+            void carregarCatalogo();
 
-        carregarCatalogo();
-
-        if (token) {
-            (async () => {
-                try {
-                    const { data } = await api.get("/api/favoritos");
-                    if (ativo && Array.isArray(data)) {
-                        setFavoritosIds(new Set<string>(data.map((p: Perfume) => p.id)));
+            if (token) {
+                (async () => {
+                    try {
+                        const { data } = await api.get("/api/favoritos");
+                        if (ativo && Array.isArray(data)) {
+                            setFavoritosIds(new Set<string>(data.map((p: Perfume) => p.id)));
+                        }
+                    } catch (error) {
+                        console.error("Erro ao carregar favoritos:", error);
                     }
-                } catch (error) {
-                    console.error("Erro ao carregar favoritos:", error);
-                }
-            })();
-        }
+                })();
+            }
+        }, 0);
 
         return () => {
             ativo = false;
+            window.clearTimeout(timeoutId);
         };
     }, [carregarCatalogo]);
 

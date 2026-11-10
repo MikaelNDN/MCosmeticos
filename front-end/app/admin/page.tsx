@@ -71,7 +71,11 @@ export default function AdminPerfumesPage() {
     }, []);
 
     useEffect(() => {
-        carregarCatalogo();
+        const timeoutId = window.setTimeout(() => {
+            void carregarCatalogo();
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
     }, [carregarCatalogo]);
 
     const handleSearch = (e: React.FormEvent) => {

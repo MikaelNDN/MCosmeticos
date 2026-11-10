@@ -221,6 +221,8 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                     alt={perfume.nome}
                                     fill
                                     priority
+                                    unoptimized
+                                    sizes="(max-width: 767px) 260px, (max-width: 1024px) 40vw, 416px"
                                     className="object-cover object-center"
                                 />
                             ) : (
@@ -342,10 +344,13 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                     <Link href={`/perfume/${item.id}`} className="flex flex-col flex-1">
                                         <div className="aspect-[4/5] w-full bg-[#0D0D0D] relative overflow-hidden flex items-center justify-center">
                                             {item.imagemUrl ? (
-                                                <img
+                                                <Image
                                                     src={item.imagemUrl}
                                                     alt={item.nome}
-                                                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                                                    fill
+                                                    unoptimized
+                                                    sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                                                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
                                                 />
                                             ) : (
                                                 <span className="text-[10px] text-zinc-700 uppercase">Sem Imagem</span>
