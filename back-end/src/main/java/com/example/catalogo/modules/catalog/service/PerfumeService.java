@@ -1,31 +1,34 @@
 package com.example.catalogo.modules.catalog.service;
 
 import com.example.catalogo.modules.catalog.dto.PerfumeCadastroDTO;
+import com.example.catalogo.modules.catalog.dto.PerfumeResponseDTO;
 import com.example.catalogo.modules.catalog.model.Perfume;
 import com.example.catalogo.modules.catalog.repository.PerfumeRepository;
-import com.example.catalogo.modules.engagement.repository.FavoritoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
 public class PerfumeService {
-    private final FavoritoRepository favoritoRepository;
     private final PerfumeRepository repository;
     private final UploadService uploadService;
 
-    public PerfumeService(PerfumeRepository repository, UploadService uploadService, FavoritoRepository favoritoRepository) {
+    public PerfumeService(PerfumeRepository repository, UploadService uploadService) {
         this.repository = repository;
         this.uploadService = uploadService;
-        this.favoritoRepository = favoritoRepository;
     }
 
-    public Perfume cadastrar(PerfumeCadastroDTO dto) {
+    private boolean isAdmin() {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
+    public PerfumeResponseDTO cadastrar(PerfumeCadastroDTO dto) {
         Perfume perfume = new Perfume();
         perfume.setNome(dto.getNome());
         perfume.setMarca(dto.getMarca());
@@ -35,34 +38,51 @@ public class PerfumeService {
         perfume.setEstoque(dto.getEstoque());
         perfume.setAtivo(true); // O produto já nasce visível no catálogo
 
-        return repository.save(perfume);
+        return new PerfumeResponseDTO(repository.save(perfume));
     }
 
-    public Page<Perfume> listarTodos(Pageable pageable){
-        return  repository.findAll(pageable);
+    public Page<PerfumeResponseDTO> listarTodos(Pageable pageable) {
+        Page<Perfume> perfumes = isAdmin() ? repository.findAll(pageable) : repository.findByAtivoTrue(pageable);
+        return perfumes.map(PerfumeResponseDTO::new);
     }
 
-    public Perfume atualizarImagem(UUID id, MultipartFile arquivo) {
+    public Page<PerfumeResponseDTO> buscarPorNome(String nome, Pageable pageable) {
+        Page<Perfume> perfumes = isAdmin() ?
+                repository.findByNomeContainingIgnoreCase(nome, pageable) :
+                repository.findByAtivoTrueAndNomeContainingIgnoreCase(nome, pageable);
+        return perfumes.map(PerfumeResponseDTO::new);
+    }
+
+    public Page<PerfumeResponseDTO> buscarPorMarca(String marca, Pageable pageable) {
+        Page<Perfume> perfumes = isAdmin() ?
+                repository.findByMarcaContainingIgnoreCase(marca, pageable) :
+                repository.findByAtivoTrueAndMarcaContainingIgnoreCase(marca, pageable);
+        return perfumes.map(PerfumeResponseDTO::new);
+    }
+
+    public PerfumeResponseDTO buscarPorId(UUID id) {
+        Perfume perfume = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Perfume não encontrado"));
+
+        // Se não for admin e o perfume estiver inativo, não permite acesso.
+        if (!isAdmin() && !perfume.isAtivo()) {
+            throw new RuntimeException("Perfume não disponível.");
+        }
+        return new PerfumeResponseDTO(perfume);
+    }
+
+    public PerfumeResponseDTO atualizarImagem(UUID id, MultipartFile arquivo) {
         Perfume perfume = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Perfume não encontrado"));
 
         String urlDaImagem = uploadService.fazerUploadImagem(arquivo);
-
         perfume.setImagemUrl(urlDaImagem);
 
-        return repository.save(perfume);
+        return new PerfumeResponseDTO(repository.save(perfume));
     }
 
-    public Page<Perfume> buscarPorNome(String nome,Pageable pageable) {
-        return repository.findByNomeContainingIgnoreCase(nome, pageable);
-    }
-
-    public Page<Perfume> buscarPorMarca(String marca, Pageable pageable) {
-        return repository.findByMarcaContainingIgnoreCase(marca, pageable);
-    }
-
-    public Perfume atualizar(UUID id, PerfumeCadastroDTO dto) {
-        Perfume perfume = repository.findById(id) // <--- Alterado de perfumeRepository para repository
+    public PerfumeResponseDTO atualizar(UUID id, PerfumeCadastroDTO dto) {
+        Perfume perfume = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Perfume não encontrado"));
 
         perfume.setNome(dto.getNome());
@@ -72,23 +92,17 @@ public class PerfumeService {
         perfume.setPreco(dto.getPreco());
         perfume.setEstoque(dto.getEstoque());
 
-        return repository.save(perfume); // <--- Alterado aqui também
+        return new PerfumeResponseDTO(repository.save(perfume));
     }
 
     @Transactional
     public void deletar(UUID id) {
-        if (!repository.existsById(id)) {
-            throw new RuntimeException("Perfume não encontrado");
-        }
-
-        favoritoRepository.deleteByPerfumeId(id);
-
-        repository.deleteById(id);
-    }
-
-    public Perfume buscarPorId(UUID id) {
-        return repository.findById(id)
+        Perfume perfume = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Perfume não encontrado"));
-    }
 
+        // Soft Delete: Apenas inativa o perfume.
+        // Assim, o histórico de favoritos e referências antigas não quebram.
+        perfume.setAtivo(false);
+        repository.save(perfume);
+    }
 }

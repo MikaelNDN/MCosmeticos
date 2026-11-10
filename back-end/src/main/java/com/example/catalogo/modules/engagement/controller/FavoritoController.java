@@ -1,13 +1,9 @@
 package com.example.catalogo.modules.engagement.controller;
 
-import com.example.catalogo.modules.account.model.Usuario;
-import com.example.catalogo.modules.account.repository.UsuarioRepository;
-import com.example.catalogo.modules.catalog.model.Perfume;
-import com.example.catalogo.modules.catalog.repository.PerfumeRepository;
+import com.example.catalogo.modules.catalog.dto.PerfumeResponseDTO;
 import com.example.catalogo.modules.engagement.model.Favorito;
-import com.example.catalogo.modules.engagement.repository.FavoritoRepository;
+import com.example.catalogo.modules.engagement.service.FavoritoService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,32 +14,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/favoritos")
 public class FavoritoController {
 
-    private final UsuarioRepository usuarioRepository;
-    private final PerfumeRepository perfumeRepository;
-    private final FavoritoRepository favoritoRepository;
+    private final FavoritoService favoritoService;
 
-    public FavoritoController(UsuarioRepository usuarioRepository,
-                              PerfumeRepository perfumeRepository,
-                              FavoritoRepository favoritoRepository) {
-        this.usuarioRepository = usuarioRepository;
-        this.perfumeRepository = perfumeRepository;
-        this.favoritoRepository = favoritoRepository;
-    }
-
-    private Usuario getUsuarioLogado() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    public FavoritoController(FavoritoService favoritoService) {
+        this.favoritoService = favoritoService;
     }
 
     @GetMapping
-    public ResponseEntity<List<Perfume>> listarFavoritos() {
-        Usuario usuario = getUsuarioLogado();
-        List<Favorito> favoritos = favoritoRepository.findByUsuarioId(usuario.getId());
+    public ResponseEntity<List<PerfumeResponseDTO>> listarFavoritos() {
+        // Busca os favoritos no serviço
+        List<Favorito> favoritos = favoritoService.listarMeusFavoritos();
 
-        // Extrai apenas os perfumes a partir da lista de favoritos do usuário
-        List<Perfume> perfumesFavoritos = favoritos.stream()
-                .map(Favorito::getPerfume)
+        // Converte a entidade Perfume para o novo PerfumeResponseDTO
+        List<PerfumeResponseDTO> perfumesFavoritos = favoritos.stream()
+                .map(f -> new PerfumeResponseDTO(f.getPerfume()))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(perfumesFavoritos);
@@ -51,26 +35,7 @@ public class FavoritoController {
 
     @PostMapping("/{perfumeId}")
     public ResponseEntity<Void> toggleFavorito(@PathVariable("perfumeId") UUID perfumeId) {
-        Usuario usuario = getUsuarioLogado();
-        Perfume perfume = perfumeRepository.findById(perfumeId)
-                .orElseThrow(() -> new RuntimeException("Perfume não encontrado"));
-
-        boolean existe = favoritoRepository.existsByUsuarioIdAndPerfumeId(usuario.getId(), perfumeId);
-
-        if (existe) {
-            // Se já existe, remove o favorito correspondente
-            List<Favorito> favoritos = favoritoRepository.findByUsuarioId(usuario.getId());
-            favoritos.stream()
-                    .filter(f -> f.getPerfume().getId().equals(perfumeId))
-                    .forEach(favoritoRepository::delete);
-        } else {
-            // Se não existe, cria um novo registro na tabela tb_favoritos
-            Favorito novoFavorito = new Favorito();
-            novoFavorito.setUsuario(usuario);
-            novoFavorito.setPerfume(perfume);
-            favoritoRepository.save(novoFavorito);
-        }
-
+        favoritoService.alternarFavorito(perfumeId);
         return ResponseEntity.ok().build();
     }
 }

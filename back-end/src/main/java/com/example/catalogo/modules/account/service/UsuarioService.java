@@ -1,5 +1,6 @@
 package com.example.catalogo.modules.account.service;
 
+import com.example.catalogo.infra.exception.EmailDuplicadoException; // Import da nova exceção
 import com.example.catalogo.modules.account.dto.UsuarioCadastroDTO;
 import com.example.catalogo.modules.account.model.Role;
 import com.example.catalogo.modules.account.model.Usuario;
@@ -7,7 +8,7 @@ import com.example.catalogo.modules.account.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate; // Import necessário
+import java.time.LocalDate;
 
 @Service
 public class UsuarioService {
@@ -22,7 +23,8 @@ public class UsuarioService {
 
     public Usuario cadastrar(UsuarioCadastroDTO dto) {
         if (repository.existsByEmail(dto.email())) {
-            throw new RuntimeException("E-mail já cadastrado!");
+            // Substituído RuntimeException por EmailDuplicadoException (HTTP 409)
+            throw new EmailDuplicadoException("Erro: O e-mail informado já está cadastrado no sistema.");
         }
 
         Usuario novoUsuario = new Usuario();

@@ -51,4 +51,12 @@ public class Perfume {
     @JsonIgnore
     @OneToMany(mappedBy = "perfume", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Favorito> favoritos = new ArrayList<>();
+
+
+    public BigDecimal getPrecoComDesconto() {
+        if (this.preco == null) return BigDecimal.ZERO;
+        // Multiplica por 0.90 e arredonda para 2 casas decimais
+        return this.preco.multiply(new BigDecimal("0.90"))
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+    }
 }

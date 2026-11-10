@@ -14,12 +14,12 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret:}")
+    @Value("${api.security.token.secret}")
     private String secret;
 
     private String getSecretKey() {
         if (secret == null || secret.trim().isEmpty()) {
-            return "mcosmeticos_chave_secreta_super_segura_123";
+            throw new IllegalStateException("O segredo JWT (API_SECURITY_TOKEN_SECRET) não está configurado nas variáveis de ambiente!");
         }
         return secret;
     }
@@ -33,7 +33,7 @@ public class TokenService {
                     .withIssuer("MCosmeticos-API")
                     .withSubject(usuario.getEmail())
                     .withClaim("role", usuario.getRole().name())
-                    .withExpiresAt(gerarDataExpiracao())
+                    .withExpiresAt(expiracao)
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
             throw new RuntimeException("Erro ao gerar token JWT", exception);
@@ -53,7 +53,6 @@ public class TokenService {
                     .verify(tokenJWT)
                     .getSubject();
         } catch (com.auth0.jwt.exceptions.JWTVerificationException exception) {
-            // Imprime no console do Spring Boot o motivo exato da falha do token
             System.err.println("Erro ao validar token JWT: " + exception.getMessage());
             return null;
         }

@@ -1,6 +1,5 @@
 package com.example.catalogo.modules.account.model;
 
-import com.example.catalogo.modules.catalog.model.Perfume;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +17,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class Usuario implements  UserDetails {
+public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,7 +32,6 @@ public class Usuario implements  UserDetails {
     @Column(nullable = false)
     private LocalDate dataNascimento;
 
-
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -44,7 +42,6 @@ public class Usuario implements  UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
-
 
     @Column(nullable = false)
     private boolean ativo = true;
@@ -87,14 +84,4 @@ public class Usuario implements  UserDetails {
         return this.ativo;
     }
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "tb_favoritos",
-            joinColumns = @JoinColumn(name = "usuario_id"),
-            inverseJoinColumns = @JoinColumn(name = "perfume_id")
-    )
-    private Set<Perfume> favoritos = new HashSet<>();
-
 }
-
-

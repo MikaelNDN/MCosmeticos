@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -32,8 +33,8 @@ public class WhatsAppService {
         var perfume = perfumeRepository.findById(perfumeId)
                 .orElseThrow(() -> new RuntimeException("Perfume não encontrado"));
 
-        // Aplica os 10% de desconto à vista (multiplica por 0.90)
-        double precoComDesconto = (perfume.getPreco() != null ? perfume.getPreco().doubleValue() : 0.0) * 0.90;
+        // O cálculo agora vem centralizado, padronizado e em BigDecimal
+        BigDecimal precoComDesconto = perfume.getPrecoComDesconto();
 
         String mensagem = String.format(
                 "Olá! Me chamo %s. Tenho interesse em comprar o perfume %s (%s). O valor de R$ %.2f à vista ainda está disponível?",

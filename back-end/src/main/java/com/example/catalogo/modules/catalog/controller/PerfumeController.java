@@ -1,7 +1,7 @@
 package com.example.catalogo.modules.catalog.controller;
 
 import com.example.catalogo.modules.catalog.dto.PerfumeCadastroDTO;
-import com.example.catalogo.modules.catalog.model.Perfume;
+import com.example.catalogo.modules.catalog.dto.PerfumeResponseDTO;
 import com.example.catalogo.modules.catalog.service.PerfumeService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,38 +23,35 @@ public class PerfumeController {
     }
 
     @PostMapping
-    public ResponseEntity<Perfume> cadastrar(
+    public ResponseEntity<PerfumeResponseDTO> cadastrar(
             @ModelAttribute PerfumeCadastroDTO dto,
-            // Alterado de "file" para "imagem" para casar exatamente com o FormData do Next.js
             @RequestParam(value = "imagem", required = false) MultipartFile file) {
 
-        Perfume perfumeCriado = service.cadastrar(dto);
-        if (file != null && !file.isEmpty()){
+        PerfumeResponseDTO perfumeCriado = service.cadastrar(dto);
+        if (file != null && !file.isEmpty()) {
             perfumeCriado = service.atualizarImagem(perfumeCriado.getId(), file);
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(perfumeCriado);
     }
 
     @PostMapping("/{id}/imagem")
-    public ResponseEntity<Perfume> fazerUploadImagem(
+    public ResponseEntity<PerfumeResponseDTO> fazerUploadImagem(
             @PathVariable UUID id,
-            // Alterado aqui também por precaução para manter o padrão
             @RequestParam("imagem") MultipartFile file) {
 
-        Perfume perfumeAtualizado = service.atualizarImagem(id, file);
+        PerfumeResponseDTO perfumeAtualizado = service.atualizarImagem(id, file);
         return ResponseEntity.ok(perfumeAtualizado);
     }
 
     @GetMapping
-    public ResponseEntity<Page<Perfume>> listarCatalogo(
+    public ResponseEntity<Page<PerfumeResponseDTO>> listarCatalogo(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String marca,
             @org.springframework.data.web.PageableDefault(page = 0, size = 10, sort = "nome") org.springframework.data.domain.Pageable pageable) {
 
         if (marca != null && !marca.isEmpty()) {
             return ResponseEntity.ok(service.buscarPorMarca(marca, pageable));
-        }
-        else if (nome != null && !nome.isEmpty()) {
+        } else if (nome != null && !nome.isEmpty()) {
             return ResponseEntity.ok(service.buscarPorNome(nome, pageable));
         }
 
@@ -63,13 +59,12 @@ public class PerfumeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Perfume> atualizar(
+    public ResponseEntity<PerfumeResponseDTO> atualizar(
             @PathVariable UUID id,
             @ModelAttribute PerfumeCadastroDTO dto,
-
             @RequestParam(value = "imagem", required = false) MultipartFile file) {
 
-        Perfume perfumeAtualizado = service.atualizar(id, dto);
+        PerfumeResponseDTO perfumeAtualizado = service.atualizar(id, dto);
         if (file != null && !file.isEmpty()) {
             perfumeAtualizado = service.atualizarImagem(id, file);
         }
@@ -83,7 +78,7 @@ public class PerfumeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Perfume> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<PerfumeResponseDTO> buscarPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 }

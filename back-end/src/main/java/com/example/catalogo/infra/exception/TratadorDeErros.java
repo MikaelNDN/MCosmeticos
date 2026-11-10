@@ -10,9 +10,21 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class TratadorDeErros {
 
+    // Tratamento específico para a duplicidade de e-mail (Retorna 409 Conflict)
+    @ExceptionHandler(EmailDuplicadoException.class)
+    public ResponseEntity<ErroResposta> tratarEmailDuplicado(EmailDuplicadoException ex) {
+        ErroResposta erro = new ErroResposta(
+                ex.getMessage(),
+                HttpStatus.CONFLICT.value(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
+    }
+
+    // Tratamento genérico para as demais RuntimeExceptions (Retorna 400 Bad Request)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErroResposta> tratarRegraDeNegocio(RuntimeException ex) {
-
         ErroResposta erro = new ErroResposta(
                 ex.getMessage(),
                 HttpStatus.BAD_REQUEST.value(),
