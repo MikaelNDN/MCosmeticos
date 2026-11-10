@@ -18,6 +18,7 @@ interface Perfume {
     linha?: string;
     descricao: string;
     preco: number;
+    precoComDesconto: number;
     estoque: number;
     imagemUrl?: string;
 }
@@ -35,7 +36,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
         let isMounted = true;
 
         async function carregarDetalhesE_Relacionados() {
-            // Ao navegar entre perfumes, reinicia o estado para não mostrar o conteúdo anterior
             setLoading(true);
             setErro(false);
             setPerfume(null);
@@ -179,7 +179,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-white selection:text-black">
-            {/* Header */}
             <header className="border-b border-zinc-800 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <Link href="/vitrine" className="text-lg font-bold tracking-wide text-white">
@@ -195,10 +194,8 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
             </header>
 
             <main className="max-w-5xl mx-auto px-6 py-8">
-                {/* Cartão principal compacto */}
                 <div className="bg-[#141414] border border-zinc-800 p-5 md:p-6 rounded-2xl shadow-xl">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                        {/* Imagem do produto */}
                         <div className="md:col-span-5 aspect-[4/5] w-full bg-[#0D0D0D] relative overflow-hidden flex items-center justify-center rounded-xl border border-zinc-800 max-w-[260px] mx-auto md:max-w-none">
                             <button
                                 onClick={(e) => handleToggleFavorito(e, perfume.id)}
@@ -239,7 +236,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                             )}
                         </div>
 
-                        {/* Detalhes do Produto */}
                         <div className="md:col-span-7 flex flex-col justify-between space-y-3">
                             <div>
                                 <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-semibold">
@@ -250,7 +246,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                 </h1>
                                 {perfume.linha && <p className="text-xs text-zinc-400 font-light">{perfume.linha}</p>}
 
-                                {/* Bloco de Preço com 10% OFF */}
                                 <div className="mt-3 border-t border-zinc-800/80 pt-3 flex flex-col gap-1">
                                     <div className="flex items-center gap-2 text-zinc-500 text-xs">
                                         <span>De:</span>
@@ -266,7 +261,7 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
                                         <span className="text-2xl font-bold text-white whitespace-nowrap">
                                             R${" "}
-                                            {(Number(perfume.preco || 0) * 0.9).toLocaleString("pt-BR", {
+                                            {Number(perfume.precoComDesconto || 0).toLocaleString("pt-BR", {
                                                 minimumFractionDigits: 2,
                                                 maximumFractionDigits: 2,
                                             })}
@@ -309,7 +304,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                     </div>
                 </div>
 
-                {/* Seção de Relacionados */}
                 {mesmaLinha.length > 0 && (
                     <div className="mt-8">
                         <div className="border-t border-zinc-800 pt-6 mb-4 flex items-baseline justify-between">
@@ -327,7 +321,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                     key={item.id}
                                     className="group relative flex flex-col bg-[#141414] border border-zinc-800/80 rounded-xl overflow-hidden hover:border-zinc-600 transition-all"
                                 >
-                                    {/* Favorito fora do Link, para não aninhar botão dentro de link */}
                                     <button
                                         onClick={(e) => handleToggleFavorito(e, item.id)}
                                         className="absolute top-2 right-2 z-20 p-1.5 rounded-full bg-black/50 backdrop-blur-md border border-zinc-700 hover:bg-black/90 transition-all"
@@ -349,7 +342,6 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                     <Link href={`/perfume/${item.id}`} className="flex flex-col flex-1">
                                         <div className="aspect-[4/5] w-full bg-[#0D0D0D] relative overflow-hidden flex items-center justify-center">
                                             {item.imagemUrl ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
                                                 <img
                                                     src={item.imagemUrl}
                                                     alt={item.nome}
@@ -379,7 +371,7 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                                 </span>
                                                 <span className="text-xs font-bold text-white">
                                                     R${" "}
-                                                    {(Number(item.preco) * 0.9).toLocaleString("pt-BR", {
+                                                    {Number(item.precoComDesconto || 0).toLocaleString("pt-BR", {
                                                         minimumFractionDigits: 2,
                                                         maximumFractionDigits: 2,
                                                     })}

@@ -18,6 +18,7 @@ interface Perfume {
     linha: string;
     descricao: string;
     preco: number;
+    precoComDesconto: number; // NOVO CAMPO: Recebido pronto do back-end
     estoque: number;
     imagemUrl?: string;
 }
@@ -33,8 +34,6 @@ type PerfumeApi = Omit<Perfume, "imagemUrl"> & {
 /* ------------------------------------------------------------------ */
 
 const TAMANHO_PAGINA = 60; // mesmo tamanho na carga inicial e na busca
-const DESCONTO_AVISTA = 0.1;
-const PERCENTUAL_DESCONTO = Math.round(DESCONTO_AVISTA * 100);
 const INTERVALO_CARROSSEL_MS = 3000;
 const RETOMAR_APOS_TOQUE_MS = 4000;
 
@@ -44,14 +43,11 @@ const formatarPreco = (valor: number | string) =>
         maximumFractionDigits: 2,
     });
 
-const precoAVista = (preco: number | string) => Number(preco) * (1 - DESCONTO_AVISTA);
-
 const normalizarPerfume = ({ imagem_url, ...resto }: PerfumeApi): Perfume => ({
     ...resto,
     imagemUrl: resto.imagemUrl ?? imagem_url,
 });
 
-// Renomeie os arquivos em /public para estes nomes (sem espaços e acentos).
 const guiaAmbientes = [
     {
         id: "trabalho",
@@ -109,11 +105,11 @@ export default function VitrinePage() {
     const [favoritosIds, setFavoritosIds] = useState<Set<string>>(new Set());
 
     const [termoBusca, setTermoBusca] = useState("");
-    const [marcaBusca, setMarcaBusca] = useState(""); // marca selecionada
-    const [marcas, setMarcas] = useState<string[]>([]); // lista fixa de marcas
+    const [marcaBusca, setMarcaBusca] = useState("");
+    const [marcas, setMarcas] = useState<string[]>([]);
 
     const [logado, setLogado] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false); // apenas visual: valide ADMIN no backend
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const [guiaIndex, setGuiaIndex] = useState(0);
     const [isPausado, setIsPausado] = useState(false);
@@ -136,8 +132,6 @@ export default function VitrinePage() {
             const carregados: Perfume[] = Array.isArray(lista) ? lista.map(normalizarPerfume) : [];
             setPerfumes(carregados);
 
-            // A lista de marcas só é montada na carga sem filtros,
-            // para não encolher quando o usuário seleciona uma marca.
             if (!nome && !marca) {
                 const unicas = Array.from(
                     new Set(carregados.map((p) => p.marca).filter(Boolean))
@@ -185,19 +179,15 @@ export default function VitrinePage() {
 
     /* ----------------------------- Carrossel --------------------------- */
 
-    // Auto-play
     useEffect(() => {
         if (isPausado) return;
-
         const id = setInterval(
             () => setGuiaIndex((prev) => (prev + 1) % guiaAmbientes.length),
             INTERVALO_CARROSSEL_MS
         );
-
         return () => clearInterval(id);
     }, [isPausado]);
 
-    // índice -> scroll (só rola se ainda não estiver na posição certa)
     useEffect(() => {
         const el = carrosselRef.current;
         if (!el) return;
@@ -208,8 +198,6 @@ export default function VitrinePage() {
         }
     }, [guiaIndex]);
 
-    // scroll manual (swipe/trackpad) -> índice. O debounce evita briga com o
-    // scroll programático: só atualiza quando o scroll para.
     const handleCarrosselScroll = () => {
         clearTimeout(scrollTimeout.current);
         scrollTimeout.current = setTimeout(() => {
@@ -246,7 +234,7 @@ export default function VitrinePage() {
     };
 
     const handleSelecionarMarca = (marca: string) => {
-        const nova = marcaBusca === marca ? "" : marca; // clicar de novo desmarca
+        const nova = marcaBusca === marca ? "" : marca;
         setMarcaBusca(nova);
         carregarCatalogo(termoBusca, nova);
     };
@@ -285,13 +273,12 @@ export default function VitrinePage() {
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 selection:bg-white selection:text-black font-sans">
-            {/* Header */}
             <header className="border-b border-zinc-700 bg-[#121212]/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-20 flex items-center justify-between gap-2">
                     <button type="button" onClick={handleLimparFiltros} className="group cursor-pointer shrink-0">
-            <span className="text-xs sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
-                M. COSMÉTICOS
-            </span>
+                        <span className="text-xs sm:text-xl font-bold tracking-wider text-white group-hover:text-zinc-300 transition-colors whitespace-nowrap">
+                            M. COSMÉTICOS
+                        </span>
                     </button>
 
                     <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-1">
@@ -303,8 +290,8 @@ export default function VitrinePage() {
                                     <span>Favoritos</span>
                                     {favoritosIds.size > 0 && (
                                         <span className="bg-white text-black text-[9px] sm:text-xs px-1.5 py-0.2 rounded-full font-bold">
-                                {favoritosIds.size}
-                            </span>
+                                            {favoritosIds.size}
+                                        </span>
                                     )}
                                 </Link>
                                 <Link href="/perfil" className={navLinkClass}>
@@ -329,7 +316,6 @@ export default function VitrinePage() {
                 </div>
             </header>
 
-            {/* Hero */}
             <section className="relative w-full max-w-full h-[280px] sm:h-[380px] md:h-[450px] overflow-hidden flex items-center justify-center text-center">
                 <div className="absolute inset-0 z-0 overflow-hidden">
                     <Image
@@ -356,7 +342,6 @@ export default function VitrinePage() {
                 </div>
             </section>
 
-            {/* Busca */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-6 sm:-mt-8 relative z-20">
                 <form
                     onSubmit={handleSearch}
@@ -427,7 +412,6 @@ export default function VitrinePage() {
                 )}
             </div>
 
-            {/* Guia olfativo (carrossel) */}
             <section className="max-w-7xl mx-auto px-6 mt-8">
                 <div className="flex items-center justify-between mb-3">
                     <div>
@@ -507,7 +491,6 @@ export default function VitrinePage() {
                 </div>
             </section>
 
-            {/* Catálogo */}
             <main className="max-w-7xl mx-auto px-6 py-12">
                 {loading ? (
                     <div className="flex justify-center items-center py-32 text-xs uppercase tracking-widest text-zinc-500 animate-pulse">
@@ -567,8 +550,6 @@ export default function VitrinePage() {
                                         )}
 
                                         {perfume.imagemUrl ? (
-                                            // unoptimized: evita liberar o domínio no next.config.
-                                            // Com images.remotePatterns configurado, pode remover.
                                             <Image
                                                 src={perfume.imagemUrl}
                                                 alt={perfume.nome}
@@ -609,11 +590,11 @@ export default function VitrinePage() {
 
                                             <div className="flex flex-col gap-0.5 mt-0.5">
                                                 <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
-                                                    À vista ({PERCENTUAL_DESCONTO}% OFF)
+                                                    À vista (10% OFF)
                                                 </span>
                                                 <span className="text-base font-bold text-white whitespace-nowrap">
-                                                    R$ {formatarPreco(precoAVista(perfume.preco))}
-                                                </span>
+                                                    {/* Removida a fórmula e chamada direta ao campo formatado */}
+                                                    R$ {formatarPreco(perfume.precoComDesconto || 0)}                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -624,7 +605,6 @@ export default function VitrinePage() {
                 )}
             </main>
 
-            {/* Footer */}
             <footer className="border-t border-zinc-800 bg-[#0A0A0A] py-16 mt-12 text-zinc-400">
                 <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
                     <div className="space-y-4">
