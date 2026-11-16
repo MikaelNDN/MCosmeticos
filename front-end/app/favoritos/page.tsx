@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import api from "@/services/api";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
+
+/* ------------------------------------------------------------------ */
+/* Tipos                                                               */
+/* ------------------------------------------------------------------ */
 
 interface Perfume {
     id: string;
@@ -13,12 +16,10 @@ interface Perfume {
     linha?: string;
     descricao: string;
     preco: number;
+    precoComDesconto?: number;
     estoque: number;
     imagemUrl?: string;
 }
-
-const DESCONTO_AVISTA = 0.1;
-const PERCENTUAL_DESCONTO = Math.round(DESCONTO_AVISTA * 100);
 
 const formatarPreco = (valor: number | string) =>
     Number(valor).toLocaleString("pt-BR", {
@@ -26,74 +27,85 @@ const formatarPreco = (valor: number | string) =>
         maximumFractionDigits: 2,
     });
 
-const precoAVista = (preco: number | string) => Number(preco) * (1 - DESCONTO_AVISTA);
+/* ------------------------------------------------------------------ */
+/* Página                                                              */
+/* ------------------------------------------------------------------ */
 
 export default function FavoritosPage() {
-    useAuthGuard();
     const router = useRouter();
     const [favoritos, setFavoritos] = useState<Perfume[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Você precisa estar logado para ver seus favoritos.");
-            router.push("/login");
-            return;
-        }
-
         let isMounted = true;
 
-        async function carregarFavoritos() {
+        async function carregarFavoritosLocais() {
             try {
-                const response = await api.get("/api/favoritos");
+                // 1. Lê os IDs salvos no navegador pela Vitrine
+                const salvos = localStorage.getItem("favoritosLocais");
 
-                if (isMounted) {
-                    const dadosBrutos = Array.isArray(response.data) ? response.data : Object.values(response.data);
+                if (!salvos) {
+                    if (isMounted) setFavoritos([]);
+                    return;
+                }
 
-                    const perfumesFavoritos = dadosBrutos
-                        .map((item: unknown) => {
-                            const obj = item as Record<string, unknown>;
-                            const p = (obj?.perfume || obj) as Record<string, unknown>;
+                const ids: string[] = JSON.parse(salvos);
 
-                            return {
-                                id: String(p?.id || ''),
-                                nome: String(p?.nome || ''),
-                                marca: String(p?.marca || ''),
-                                linha: p?.linha ? String(p.linha) : undefined,
-                                descricao: String(p?.descricao || ''),
-                                preco: Number(p?.preco ?? p?.valor ?? 0),
-                                estoque: Number(p?.estoque ?? 0),
-                                imagemUrl: String(p?.imagemUrl || p?.imagem_url || ''),
-                            } as Perfume;
-                        })
+                if (ids.length === 0) {
+                    if (isMounted) setFavoritos([]);
+                    return;
+                }
+
+                // 2. Busca o catálogo público para mapear as informações completas dos IDs favoritados
+                const { data } = await api.get("/api/perfumes?size=100");
+                const lista = data?.content ?? data;
+
+                if (Array.isArray(lista) && isMounted) {
+                    const perfumesFavoritos = lista
+                        .filter((p: any) => ids.includes(p.id))
+                        .map((p: any) => ({
+                            id: String(p.id || ''),
+                            nome: String(p.nome || ''),
+                            marca: String(p.marca || ''),
+                            linha: p.linha ? String(p.linha) : undefined,
+                            descricao: String(p.descricao || ''),
+                            preco: Number(p.preco ?? p.valor ?? 0),
+                            precoComDesconto: Number(p.precoComDesconto ?? p.preco ?? 0),
+                            estoque: Number(p.estoque ?? 0),
+                            // Garante que pega a imagem independentemente de como vem do back-end
+                            imagemUrl: String(p.imagemUrl || p.imagem_url || p.imagem || ''),
+                        }))
                         .filter((perfume: Perfume) => perfume.id && !isNaN(perfume.preco) && perfume.preco > 0);
 
                     setFavoritos(perfumesFavoritos);
                 }
             } catch (error) {
-                console.error("Erro ao carregar favoritos:", error);
+                console.error("Erro ao carregar favoritos locais:", error);
             } finally {
                 if (isMounted) setLoading(false);
             }
         }
 
-        carregarFavoritos();
+        carregarFavoritosLocais();
 
         return () => {
             isMounted = false;
         };
-    }, [router]);
+    }, []);
 
-    const handleRemoverFavorito = async (e: React.MouseEvent, id: string) => {
+    const handleRemoverFavorito = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        try {
-            await api.post(`/api/favoritos/${id}`);
-            setFavoritos(prev => prev.filter(item => item.id !== id));
-        } catch (error) {
-            console.error("Erro ao remover favorito:", error);
-            alert("Não foi possível atualizar os favoritos.");
-        }
+
+        // Remove do estado visual
+        setFavoritos(prev => {
+            const novaLista = prev.filter(item => item.id !== id);
+
+            // Atualiza o cache do navegador apenas com os IDs restantes
+            const novosIds = novaLista.map(item => item.id);
+            localStorage.setItem("favoritosLocais", JSON.stringify(novosIds));
+
+            return novaLista;
+        });
     };
 
     if (loading) {
@@ -180,7 +192,6 @@ export default function FavoritosPage() {
                                         {perfume.linha && <p className="text-xs text-zinc-500 font-light mt-1">{perfume.linha}</p>}
                                     </div>
 
-                                    {/* Bloco do Preço com Desconto À vista */}
                                     <div className="mt-5 pt-4 border-t border-zinc-800 flex flex-col gap-1">
                                         <div className="flex justify-between items-center text-zinc-500 text-[11px]">
                                             <span>De:</span>
@@ -191,10 +202,10 @@ export default function FavoritosPage() {
 
                                         <div className="flex flex-col gap-0.5 mt-0.5">
                                             <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
-                                                À vista ({PERCENTUAL_DESCONTO}% OFF)
+                                                À vista (10% OFF)
                                             </span>
                                             <span className="text-lg font-bold text-white whitespace-nowrap">
-                                                R$ {formatarPreco(precoAVista(perfume.preco))}
+                                                R$ {formatarPreco(perfume.precoComDesconto || 0)}
                                             </span>
                                         </div>
                                     </div>

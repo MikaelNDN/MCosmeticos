@@ -1,14 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+// ============================================================================
+// 1. COMPONENTE ATIVO: Apenas redireciona os curiosos de volta para a vitrine
+// ============================================================================
+export default function CadastroPage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        router.replace("/vitrine");
+    }, [router]);
+
+    // Retorna nulo para que a página fique invisível durante o redirecionamento
+    return null;
+}
+
+/* ============================================================================
+   2. CÓDIGO ORIGINAL GUARDADO PARA O FUTURO
+   (Comentado para não gerar erros de compilação ou deploy no Next.js/Vercel)
+   ============================================================================
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import api from "@/services/api";
 
-const TAMANHO_MINIMO_SENHA = 6; // se o backend exigir mais, ajuste aqui
+const TAMANHO_MINIMO_SENHA = 6;
 
 const hojeLocal = () => {
     const d = new Date();
@@ -20,7 +41,6 @@ const hojeLocal = () => {
 const labelClass = "block text-[10px] uppercase tracking-widest text-zinc-500 mb-1 font-semibold";
 const inputClass =
     "w-full bg-[#0A0A0A] border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-500 transition-all text-white placeholder:text-zinc-600";
-
 
 function IconeOlho({ aberto }: { aberto: boolean }) {
     return (
@@ -106,7 +126,7 @@ function Requisito({ ok, texto }: { ok: boolean; texto: string }) {
     );
 }
 
-export default function CadastroPage() {
+export function CadastroPageOriginal() {
     const router = useRouter();
 
     const [nome, setNome] = useState("");
@@ -150,7 +170,7 @@ export default function CadastroPage() {
                 nome: nome.trim(),
                 sobrenome: sobrenome.trim(),
                 dataNascimento,
-                email: email.trim().toLowerCase(), // mesmo formato usado no login
+                email: email.trim().toLowerCase(),
                 senha,
             });
 
@@ -177,7 +197,6 @@ export default function CadastroPage() {
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans grid grid-cols-1 lg:grid-cols-2 selection:bg-white selection:text-black">
-            {/* Painel lateral (apenas telas grandes) */}
             <div className="relative hidden lg:flex flex-col justify-between p-12 bg-[#0D0D0D] border-r border-zinc-800/80 overflow-hidden">
                 <div className="absolute inset-0 z-0 opacity-45">
                     <Image
@@ -214,7 +233,6 @@ export default function CadastroPage() {
                 </div>
             </div>
 
-            {/* Formulário */}
             <div className="flex items-center justify-center p-6 sm:p-12 lg:p-16">
                 <div className="w-full max-w-lg space-y-6 bg-[#141414] border border-zinc-800 p-6 sm:p-10 rounded-2xl shadow-2xl my-auto">
                     <div className="space-y-1">
@@ -367,3 +385,5 @@ export default function CadastroPage() {
         </div>
     );
 }
+
+*/

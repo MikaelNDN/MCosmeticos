@@ -46,7 +46,12 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
 
                 const response = await api.get(`/api/perfumes/${resolvedParams.id}`);
                 if (isMounted && response.data) {
-                    const perfumeAtual = response.data;
+                    const p = response.data;
+                    // Garante a leitura da imagem independentemente do formato
+                    const perfumeAtual: Perfume = {
+                        ...p,
+                        imagemUrl: String(p.imagemUrl || p.imagem_url || p.imagem || ''),
+                    };
                     setPerfume(perfumeAtual);
 
                     try {
@@ -54,11 +59,15 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                         const listaGeral = allResponse.data.content ? allResponse.data.content : allResponse.data;
 
                         if (isMounted && Array.isArray(listaGeral)) {
-                            const relacionados = listaGeral.filter((p: Perfume) => {
-                                if (p.id === perfumeAtual.id) return false;
-                                if (!perfumeAtual.linha || !p.linha) return false;
-                                return p.linha.trim().toLowerCase() === perfumeAtual.linha.trim().toLowerCase();
-                            });
+                            const relacionados = listaGeral.filter((item: any) => {
+                                if (item.id === perfumeAtual.id) return false;
+                                if (!perfumeAtual.linha || !item.linha) return false;
+                                return item.linha.trim().toLowerCase() === perfumeAtual.linha.trim().toLowerCase();
+                            }).map((item: any) => ({
+                                ...item,
+                                imagemUrl: String(item.imagemUrl || item.imagem_url || item.imagem || ''),
+                            }));
+
                             setMesmaLinha(relacionados);
                         }
                     } catch (err) {
@@ -66,16 +75,14 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                     }
                 }
 
-                const token = localStorage.getItem("token");
-                if (token) {
+                // Carrega os favoritos salvos no navegador (Guest model)
+                const salvos = localStorage.getItem("favoritosLocais");
+                if (salvos && isMounted) {
                     try {
-                        const favResponse = await api.get("/api/favoritos");
-                        if (isMounted && Array.isArray(favResponse.data)) {
-                            const ids = new Set<string>(favResponse.data.map((p: Perfume) => p.id));
-                            setFavoritosIds(ids);
-                        }
-                    } catch (err) {
-                        console.error("Erro ao carregar favoritos:", err);
+                        const ids = new Set<string>(JSON.parse(salvos));
+                        setFavoritosIds(ids);
+                    } catch (e) {
+                        console.error("Erro ao ler favoritos", e);
                     }
                 }
             } catch (error) {
@@ -93,66 +100,38 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
         };
     }, [resolvedParams?.id]);
 
-    const handleComprarWhatsApp = async () => {
+    const handleComprarWhatsApp = () => {
         if (!perfume) return;
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            toast.error("Faça login para continuar", {
-                description: "É preciso estar logado para realizar o pedido via WhatsApp.",
-            });
-            router.push("/login");
-            return;
-        }
+        // Gera a mensagem de compra formatada
+        const precoFormatado = Number(perfume.precoComDesconto || perfume.preco || 0).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
 
-        try {
-            const response = await api.get(`/api/vendas/whatsapp/${perfume.id}`);
-            const urlWhatsApp = response.data.whatsappUrl;
+        const mensagem = `Olá, vim pelo site! Gostaria de comprar o perfume *${perfume.nome}* (${perfume.marca}).\n\n*Valor à vista:* R$ ${precoFormatado}`;
 
-            if (urlWhatsApp) {
-                window.location.href = urlWhatsApp;
-            } else {
-                throw new Error("URL do WhatsApp não retornada");
-            }
-        } catch (error) {
-            console.error("Erro ao gerar link do WhatsApp:", error);
-            toast.error("Não foi possível gerar o link de atendimento", {
-                description: "Verifique se está logado e tente novamente.",
-            });
-        }
+        // Link direto do seu WhatsApp
+        const linkWhatsApp = `https://wa.me/5584996377622?text=${encodeURIComponent(mensagem)}`;
+        window.open(linkWhatsApp, '_blank');
     };
 
-    const handleToggleFavorito = async (e: React.MouseEvent, id: string) => {
+    const handleToggleFavorito = (e: React.MouseEvent, id: string) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            toast.error("Faça login para continuar", {
-                description: "Entre na sua conta para salvar suas fragrâncias favoritas.",
-            });
-            router.push("/login");
-            return;
-        }
+        setFavoritosIds((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
 
-        try {
-            await api.post(`/api/favoritos/${id}`);
-
-            setFavoritosIds((prev) => {
-                const newSet = new Set(prev);
-                if (newSet.has(id)) {
-                    newSet.delete(id);
-                } else {
-                    newSet.add(id);
-                }
-                return newSet;
-            });
-        } catch (error) {
-            console.error("Erro ao favoritar:", error);
-            toast.error("Erro ao salvar favorito", {
-                description: "Tente novamente em instantes.",
-            });
-        }
+            // Salva no navegador instantaneamente
+            localStorage.setItem("favoritosLocais", JSON.stringify(Array.from(newSet)));
+            return newSet;
+        });
     };
 
     if (loading) {
@@ -199,7 +178,7 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                         <div className="md:col-span-5 aspect-[4/5] w-full bg-[#0D0D0D] relative overflow-hidden flex items-center justify-center rounded-xl border border-zinc-800 max-w-[260px] mx-auto md:max-w-none">
                             <button
                                 onClick={(e) => handleToggleFavorito(e, perfume.id)}
-                                className="absolute top-2.5 right-2.5 z-20 p-2 rounded-full bg-black/50 backdrop-blur-md border border-zinc-700 hover:bg-black/90 transition-all"
+                                className="absolute top-2.5 right-2.5 z-20 p-2 rounded-full bg-black/50 backdrop-blur-md border border-zinc-700 hover:bg-black/90 transition-all cursor-pointer"
                                 aria-label="Favoritar"
                             >
                                 <svg
@@ -321,11 +300,12 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                             {mesmaLinha.map((item) => (
                                 <div
                                     key={item.id}
-                                    className="group relative flex flex-col bg-[#141414] border border-zinc-800/80 rounded-xl overflow-hidden hover:border-zinc-600 transition-all"
+                                    className="group relative flex flex-col bg-[#141414] border border-zinc-800/80 rounded-xl overflow-hidden hover:border-zinc-600 transition-all cursor-pointer"
+                                    onClick={() => router.push(`/perfume/${item.id}`)}
                                 >
                                     <button
                                         onClick={(e) => handleToggleFavorito(e, item.id)}
-                                        className="absolute top-2 right-2 z-20 p-1.5 rounded-full bg-black/50 backdrop-blur-md border border-zinc-700 hover:bg-black/90 transition-all"
+                                        className="absolute top-2 right-2 z-20 p-1.5 rounded-full bg-black/50 backdrop-blur-md border border-zinc-700 hover:bg-black/90 transition-all cursor-pointer"
                                         aria-label="Favoritar"
                                     >
                                         <svg
@@ -341,7 +321,7 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                         </svg>
                                     </button>
 
-                                    <Link href={`/perfume/${item.id}`} className="flex flex-col flex-1">
+                                    <div className="flex flex-col flex-1">
                                         <div className="aspect-[4/5] w-full bg-[#0D0D0D] relative overflow-hidden flex items-center justify-center">
                                             {item.imagemUrl ? (
                                                 <Image
@@ -383,7 +363,7 @@ export default function PerfumeDetalhesPage({ params }: PageProps) {
                                                 </span>
                                             </div>
                                         </div>
-                                    </Link>
+                                    </div>
                                 </div>
                             ))}
                         </div>

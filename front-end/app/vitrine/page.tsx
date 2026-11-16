@@ -18,12 +18,11 @@ interface Perfume {
     linha: string;
     descricao: string;
     preco: number;
-    precoComDesconto: number; // NOVO CAMPO: Recebido pronto do back-end
+    precoComDesconto: number;
     estoque: number;
     imagemUrl?: string;
 }
 
-// Formato cru da API (aceita os dois nomes de campo e normaliza)
 type PerfumeApi = Omit<Perfume, "imagemUrl"> & {
     imagemUrl?: string;
     imagem_url?: string;
@@ -33,7 +32,7 @@ type PerfumeApi = Omit<Perfume, "imagemUrl"> & {
 /* Constantes e utilitários                                            */
 /* ------------------------------------------------------------------ */
 
-const TAMANHO_PAGINA = 60; // mesmo tamanho na carga inicial e na busca
+const TAMANHO_PAGINA = 60;
 const INTERVALO_CARROSSEL_MS = 3000;
 const RETOMAR_APOS_TOQUE_MS = 4000;
 
@@ -159,17 +158,15 @@ export default function VitrinePage() {
             setIsAdmin(role?.toUpperCase() === "ADMIN");
             void carregarCatalogo();
 
-            if (token) {
-                (async () => {
-                    try {
-                        const { data } = await api.get("/api/favoritos");
-                        if (ativo && Array.isArray(data)) {
-                            setFavoritosIds(new Set<string>(data.map((p: Perfume) => p.id)));
-                        }
-                    } catch (error) {
-                        console.error("Erro ao carregar favoritos:", error);
-                    }
-                })();
+            // Carrega os favoritos do LocalStorage do navegador (sem API)
+            const favoritosSalvos = localStorage.getItem("favoritosLocais");
+            if (favoritosSalvos && ativo) {
+                try {
+                    const arrayFavoritos = JSON.parse(favoritosSalvos);
+                    setFavoritosIds(new Set<string>(arrayFavoritos));
+                } catch (e) {
+                    console.error("Erro ao ler favoritos do cache", e);
+                }
             }
         }, 0);
 
@@ -247,28 +244,26 @@ export default function VitrinePage() {
         carregarCatalogo();
     };
 
-    const handleToggleFavorito = async (e: React.MouseEvent, id: string) => {
+    const handleToggleFavorito = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
 
-        if (!localStorage.getItem("token")) {
-            alert("Faça login para salvar suas fragrâncias favoritas!");
-            router.push("/login");
-            return;
-        }
+        setFavoritosIds((prev) => {
+            const novo = new Set(prev);
+            if (novo.has(id)) {
+                novo.delete(id);
+            } else {
+                novo.add(id);
+            }
 
-        try {
-            await api.post(`/api/favoritos/${id}`);
+            // Salva a lista atualizada no navegador do cliente
+            localStorage.setItem("favoritosLocais", JSON.stringify(Array.from(novo)));
+            return novo;
+        });
+    };
 
-            setFavoritosIds((prev) => {
-                const novo = new Set(prev);
-                if (novo.has(id)) novo.delete(id);
-                else novo.add(id);
-                return novo;
-            });
-        } catch (error) {
-            console.error("Erro ao favoritar:", error);
-            alert("Erro ao salvar favorito.");
-        }
+    const handleLogout = () => {
+        localStorage.clear();
+        window.location.reload();
     };
 
     /* -------------------------------- UI ------------------------------- */
@@ -286,33 +281,30 @@ export default function VitrinePage() {
                     <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-1">
                         <ThemeToggle />
 
-                        {logado ? (
-                            <>
-                                <Link href="/favoritos" className={`${navLinkClass} flex items-center gap-1`}>
-                                    <span>Favoritos</span>
-                                    {favoritosIds.size > 0 && (
-                                        <span className="bg-white text-black text-[9px] sm:text-xs px-1.5 py-0.2 rounded-full font-bold">
-                                            {favoritosIds.size}
-                                        </span>
-                                    )}
-                                </Link>
-                                <Link href="/perfil" className={navLinkClass}>
-                                    Perfil
-                                </Link>
-                            </>
-                        ) : (
-                            <Link href="/login" className={`${navLinkClass} px-2 sm:px-3`}>
-                                Entrar
-                            </Link>
-                        )}
+                        <Link href="/favoritos" className={`${navLinkClass} flex items-center gap-1`}>
+                            <span>Favoritos</span>
+                            {favoritosIds.size > 0 && (
+                                <span className="bg-white text-black text-[9px] sm:text-xs px-1.5 py-0.2 rounded-full font-bold">
+                                    {favoritosIds.size}
+                                </span>
+                            )}
+                        </Link>
 
                         {isAdmin && (
-                            <Link
-                                href="/admin"
-                                className="text-[10px] sm:text-sm uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors font-bold border-l border-zinc-700 pl-1.5 sm:pl-3 py-1 whitespace-nowrap"
-                            >
-                                Admin
-                            </Link>
+                            <>
+                                <Link
+                                    href="/admin"
+                                    className="text-[10px] sm:text-sm uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors font-bold border-l border-zinc-700 pl-1.5 sm:pl-3 py-1 whitespace-nowrap"
+                                >
+                                    Admin
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className={`${navLinkClass} text-red-400 hover:text-red-300`}
+                                >
+                                    Sair
+                                </button>
+                            </>
                         )}
                     </nav>
                 </div>
@@ -595,8 +587,8 @@ export default function VitrinePage() {
                                                     À vista (10% OFF)
                                                 </span>
                                                 <span className="text-base font-bold text-white whitespace-nowrap">
-                                                    {/* Removida a fórmula e chamada direta ao campo formatado */}
-                                                    R$ {formatarPreco(perfume.precoComDesconto || 0)}                                                </span>
+                                                    R$ {formatarPreco(perfume.precoComDesconto || 0)}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -622,7 +614,6 @@ export default function VitrinePage() {
                         <ul className="space-y-2 text-sm font-light text-zinc-400">
                             <li><Link href="/vitrine" className="hover:text-white transition-colors">Vitrine Exclusiva</Link></li>
                             <li><Link href="/favoritos" className="hover:text-white transition-colors">Meus Favoritos</Link></li>
-                            <li><Link href="/perfil" className="hover:text-white transition-colors">Minha Conta</Link></li>
                         </ul>
                     </div>
 

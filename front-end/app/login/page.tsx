@@ -8,6 +8,10 @@ import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import api from "@/services/api";
 
+/* ------------------------------------------------------------------ */
+/* Utilitários de Token e Role                                        */
+/* ------------------------------------------------------------------ */
+
 const parseJwt = (token: string) => {
     try {
         const base64Url = token.split(".")[1];
@@ -48,9 +52,17 @@ const extrairRole = (payload: Record<string, unknown> | null): string => {
     return texto.toUpperCase().replace(/^ROLE_/, "");
 };
 
+/* ------------------------------------------------------------------ */
+/* Estilos                                                            */
+/* ------------------------------------------------------------------ */
+
 const labelClass = "block text-[10px] uppercase tracking-widest text-zinc-500 mb-1 font-semibold";
 const inputClass =
     "w-full bg-[#0A0A0A] border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-500 transition-all text-white placeholder:text-zinc-600";
+
+/* ------------------------------------------------------------------ */
+/* Página de Login (Portal Admin)                                     */
+/* ------------------------------------------------------------------ */
 
 export default function LoginPage() {
     const router = useRouter();
@@ -59,9 +71,7 @@ export default function LoginPage() {
     const [erro, setErro] = useState("");
     const [loading, setLoading] = useState(false);
 
-    // Abrir a tela de login encerra qualquer sessão anterior. Assim, ao voltar
-    // para a vitrine daqui, a pessoa não aparece logada (nem como admin) por
-    // causa de um token/role antigo no navegador.
+    // Limpa a sessão ao aceder à página
     useEffect(() => {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
@@ -83,19 +93,31 @@ export default function LoginPage() {
             if (!token) {
                 console.error("Resposta de login sem token:", response.data);
                 setErro("Não foi possível concluir o login. Tente novamente.");
+                setLoading(false);
                 return;
             }
 
             const role = extrairRole(parseJwt(token));
 
-            localStorage.setItem("token", token);
-            localStorage.setItem("role", role); // apenas visual: o backend valida a permissão
+            // A FECHADURA: Bloqueia qualquer conta que não seja ADMIN
+            if (role !== "ADMIN") {
+                localStorage.removeItem("token");
+                localStorage.removeItem("role");
+                setErro("Acesso restrito: Apenas administradores têm permissão para entrar.");
+                setLoading(false);
+                return;
+            }
 
-            toast.success("Login realizado com sucesso!", {
-                description: "Bem-vindo de volta à M. Cosméticos.",
+            // Permissão concedida
+            localStorage.setItem("token", token);
+            localStorage.setItem("role", role);
+
+            toast.success("Acesso Autorizado", {
+                description: "Bem-vindo ao Painel de Controle.",
             });
 
-            router.replace(role === "ADMIN" ? "/admin" : "/vitrine");
+            // Redireciona diretamente para o painel de administração
+            router.replace("/admin");
         } catch (err) {
             console.error(err);
 
@@ -108,7 +130,6 @@ export default function LoginPage() {
                     ? "E-mail ou senha inválidos. Tente novamente."
                     : "Não foi possível conectar ao servidor. Tente novamente em instantes."
             );
-        } finally {
             setLoading(false);
         }
     };
@@ -139,11 +160,10 @@ export default function LoginPage() {
 
                 <div className="relative z-10 max-w-md space-y-3">
                     <h2 className="text-3xl font-bold tracking-tight text-white leading-snug">
-                        Bem-vindo de volta à sofisticação.
+                        Portal Administrativo
                     </h2>
                     <p className="text-sm text-zinc-400 font-light leading-relaxed">
-                        Acesse sua conta para gerenciar seus pedidos, explorar coleções e acessar suas
-                        fragrâncias favoritas com total exclusividade.
+                        Acesso exclusivo para gestão de catálogo, controlo de stock e administração da loja M. Cosméticos.
                     </p>
                 </div>
 
@@ -155,7 +175,7 @@ export default function LoginPage() {
             {/* Formulário */}
             <div className="flex items-center justify-center p-6 sm:p-12 lg:p-16">
                 <div className="w-full max-w-md space-y-6 bg-[#141414] border border-zinc-800 p-8 sm:p-10 rounded-2xl shadow-2xl my-auto">
-                    {/* Saída para a vitrine (única visível no mobile) */}
+                    {/* Saída para a vitrine */}
                     <Link
                         href="/vitrine"
                         className="text-[11px] uppercase tracking-widest text-zinc-500 hover:text-white transition-colors font-medium inline-block"
@@ -168,10 +188,10 @@ export default function LoginPage() {
                             Acesso Seguro
                         </span>
                         <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-                            Acesse sua Conta
+                            Gestão da Loja
                         </h1>
                         <p className="text-xs text-zinc-400 font-light">
-                            Insira suas credenciais para continuar.
+                            Insira as suas credenciais de administrador.
                         </p>
                     </div>
 
@@ -192,7 +212,7 @@ export default function LoginPage() {
                             <input
                                 id="email"
                                 type="email"
-                                placeholder="exemplo@email.com"
+                                placeholder="admin@mcosmeticos.com.br"
                                 required
                                 autoComplete="email"
                                 autoCapitalize="none"
@@ -236,21 +256,9 @@ export default function LoginPage() {
                             disabled={loading}
                             className="w-full bg-white text-black py-3.5 text-xs uppercase tracking-widest font-bold rounded-lg hover:bg-zinc-200 active:bg-zinc-300 transition-all shadow-lg mt-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative z-20 active:scale-[0.99]"
                         >
-                            {loading ? "Entrando..." : "Entrar"}
+                            {loading ? "A Autenticar..." : "Entrar no Painel"}
                         </button>
                     </form>
-
-                    <div className="mt-6 pt-4 border-t border-zinc-800/60 text-center">
-                        <p className="text-xs text-zinc-400 font-light">
-                            Ainda não possui uma conta?{" "}
-                            <Link
-                                href="/cadastro"
-                                className="underline text-white font-medium hover:text-zinc-300 transition-colors"
-                            >
-                                Cadastre-se
-                            </Link>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
